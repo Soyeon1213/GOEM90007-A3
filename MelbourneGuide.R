@@ -15,7 +15,13 @@ transportation_tab <- tabPanel(
 )
 
 restaurant_tab <- tabPanel(
-  title="Restaurants"
+  title="Restaurants",
+  h2("Restaurants in Melbourne"),
+  tableauPublicViz(
+    id="RestaurantMap",
+    url="https://public.tableau.com/views/RestaurantMap_17295190169160/Sheet1?:language=ko-KR&publish=yes&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link",
+    height="500px"
+  )
 )
 
 attraction_tab <- tabPanel(

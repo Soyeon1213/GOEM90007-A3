@@ -1,72 +1,3 @@
-<<<<<<< Updated upstream
-library(shiny)
-library(shinythemes)
-library(shinyjs)
-
-source('tableau-in-shiny-v1.2.R')
-
-overview_tab <- tabPanel(
-  title="Overview",
-  h2("Welcome to Melbourne City Guide"),
-  p("Here you will find information you need to know before your visit to Melbourne City!")
-)
-
-transportation_tab <- tabPanel(
-  title="Transportation"
-)
-
-restaurant_tab <- tabPanel(
-  title="Restaurants",
-  h2("Restaurants in Melbourne"),
-  tableauPublicViz(
-    id="RestaurantMap",
-    url="https://public.tableau.com/views/RestaurantMap_17295190169160/Sheet1?:language=ko-KR&publish=yes&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link"
-  )
-)
-
-attraction_tab <- tabPanel(
-  title="Attractions",
-  h2("Attractions in Melbourne"),
-  tableauPublicViz(
-    id="AttractionMap",
-    url="https://public.tableau.com/views/Attraction_17292557361430/Sheet1?:language=en-GB&publish=yes&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link",
-    height="500px"
-  )
-  
-)
-
-accomodation_tab <- tabPanel(
-  title="Accomodation",
-  h2("Accomodation in Melbourne"),
-  tableauPublicViz(
-    id="AccomodationMap",
-    url="https://public.tableau.com/views/Airbnb_17295563103790/Sheet1?:language=en-GB&publish=yes&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link",
-    height="500px"
-  )
-  
-)
-
-ui <- navbarPage(
-  theme = shinytheme("flatly"), # other themes: cerulean, cosmo, lumen, flatly
-  header=setUpTableauInShiny(),
-  title = "Melbourne City Guide",
-  
-  overview_tab,
-  transportation_tab,
-  restaurant_tab,
-  attraction_tab,
-  accomodation_tab
-  
-)
-
-# Server logic
-server <- function(input, output, session) {
-  # Placeholder for future visualizations and map integrations
-}
-
-# Run the application
-shinyApp(ui, server, options=list(launch.browser=TRUE))
-=======
 library(shiny)
 library(shinythemes)
 library(shinyjs)
@@ -102,13 +33,21 @@ attraction_tab <- tabPanel(
   
   tableauPublicViz(
     id="TopAttractionChart",
-    url="https://public.tableau.com/shared/CR99P4C96?:display_count=n&:origin=viz_share_link"
+    url="https://public.tableau.com/shared/CR99P4C96?:display_count=n&:origin=viz_share_link",
+    width="80%"
   )
   
 )
 
 accomodation_tab <- tabPanel(
-  title="Accomodation"
+  title="Accomodation",
+  h2("Accomodation in Melbourne"),
+  tableauPublicViz(
+    id="AccomodationMap",
+    url="https://public.tableau.com/views/Airbnb_17295563103790/Sheet1?:language=en-GB&publish=yes&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link",
+    height="500px"
+  )
+  
 )
 
 ui <- navbarPage(
@@ -131,4 +70,4 @@ server <- function(input, output, session) {
 
 # Run the application
 shinyApp(ui, server, options=list(launch.browser=TRUE))
->>>>>>> Stashed changes
+

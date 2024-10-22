@@ -1,4 +1,4 @@
-# 필요한 라이브러리 로드
+# load library
 library(shiny)
 library(shinythemes)
 library(fontawesome)
@@ -13,38 +13,51 @@ library(geojsonio)
 library(sf)
 
 ######################
-# 데이터 전처리 #
+# Data Pre-processing #
 ######################
 
-# 트램 및 기차역 데이터 로드
+# Data load
 tram_data <- read_csv("tram_stop.csv")
 train_data <- read_csv("train_station.csv")
 
-# GeoJSON 파일 로드 (멜버른 구역)
+# Touristic Stations
+shuttle_data <- read_csv("visitor_shuttle.csv")
+skybus_data <- read_csv("skybus_stop.csv")
+citytram_data <- read_csv("city_tram.csv")
+
+# GeoJSON file (Melbourne)
 melbourne_geojson <- st_read("melbourne_city.geojson")
 
-# 선택 필터 값 정의
+# Filter tram stops and train stations
 state_choiceVec <- c("All Stops", "Tram Stops", "Train Stations")
+
+# Touristic transportation choices
+touristic_choiceVec <- c("All Touristic Stops", "Visitor Shuttle", "SkyBus", "City Circle Tram")
+
+# Tram route numbers
+tram_numbers <- sort(unique(tram_data$routeussp))
+train_lines <- sort(unique(train_data$routeussp))
+
 
 ##################
 # USER INTERFACE #
 ##################
 ui <- page_navbar(
-  title = "Melbourne Tram and Train Stations",
+  title = "Melbourne Touristic information",
   theme = bs_theme(
     bootswatch = "cerulean",
     navbar_bg = "#d3d3d3"
   ),
   nav_spacer(),
   
-  # 1st tab - Overview of Stops
+  # Combined tab - Overview of Stops and Touristic Transportation
   nav_panel("Overview",
             fluidPage(
-              # Title을 actionLink와 결합하여 클릭 가능하게 함
+              # Title for Tram and Train Stations
               actionLink("tram_title", 
                          value_box(
-                           title = "Overview of Melbourne Tram and Train Stations",
-                           value = "",
+                           title = NULL,
+                           value = "Overview of Melbourne Tram and Train Stations",
                            theme = "bg-gradient-cyan-green",
                            showcase = bsicons::bs_icon("map"),
                            showcase_layout = "top right"
@@ -53,7 +66,7 @@ ui <- page_navbar(
               h5(strong("Select Stop Type, Map View, and Zoom to explore stations on the map."),
                  style = "font-size:16px;"),
               
-              # Value box
+              # Value boxes for Tram, Train, and Bus Stops
               layout_columns(
                 actionLink("tram_link",
                            value_box(
@@ -74,10 +87,9 @@ ui <- page_navbar(
               ),
               hr(),
               
-              # 필터 옵션 및 지도 시각화
+              # Filter options and map for Transportation
               sidebarLayout(
                 sidebarPanel(
-                  # 라디오 버튼으로 변경
                   radioButtons("stop_type", 
                                label = tags$p(fa("filter", fill = "#244f76"), 
                                               "Select Stop Type"),
@@ -85,6 +97,29 @@ ui <- page_navbar(
                                               "Tram Stops" = "Tram Stops", 
                                               "Train Stations" = "Train Stations"),
                                selected = "All Stops"),
+                  # Conditional inputs for tram, train
+                  conditionalPanel(
+                    condition = "input.stop_type == 'Tram Stops'",
+                    pickerInput(
+                      inputId = "tram_number",
+                      label = "Select Tram Number:",
+                      choices = tram_numbers,
+                      selected = tram_numbers,
+                      multiple = TRUE,
+                      options = list(`actions-box` = TRUE)
+                    )
+                  ),
+                  conditionalPanel(
+                    condition = "input.stop_type == 'Train Stations'",
+                    pickerInput(
+                      inputId = "train_lines",
+                      label = "Select Train Line:",
+                      choices = train_lines,
+                      selected = train_lines,
+                      multiple = TRUE,
+                      options = list(`actions-box` = TRUE)
+                    )
+                  ),
                   sliderInput("zoom_level", "Zoom Level:", 
                               min = 10, max = 16, value = 12, step = 1)
                 ),
@@ -93,76 +128,114 @@ ui <- page_navbar(
                 )
               ),
               hr(),
-              h5('Data Source: Melbourne Public Transport', 
-                 style = "font-size:12px;")
-            )
-  ),
-  
-  # 2nd tab - Detailed View of Stops
-  nav_panel("Details",
-            fluidPage(
-              actionLink("details_title", 
+              
+              # Touristic Transportation Section
+              actionLink("touristic_title", 
                          value_box(
-                           title = "Details of Tram and Train Stations",
-                           value = "",
-                           theme = "bg-gradient-teal-blue",
-                           showcase = bsicons::bs_icon("info-circle"),
+                           title = NULL,
+                           value = "Overview of Touristic Transportation",
+                           theme = "bg-gradient-purple-cyan",
+                           showcase = bsicons::bs_icon("bus-front"),
                            showcase_layout = "top right"
                          )),
               hr(),
-              h5(strong("Select a station marker for detailed information."),
+              h5(strong("Select Stop Type and Zoom to explore touristic transportation on the map."),
                  style = "font-size:16px;"),
               
-              # Sidebar 및 지도 시각화
+              # Value boxes for touristic stops
+              layout_columns(
+                actionLink("visitor_shuttle_link",
+                           value_box(
+                             title = "Total Visitor Shuttle Stops",
+                             value = nrow(shuttle_data),
+                             theme = "bg-gradient-purple-blue",
+                             showcase = bsicons::bs_icon("bus-front"),
+                             showcase_layout = "top right"
+                           )),
+                actionLink("skybus_link",
+                           value_box(
+                             title = "Total SkyBus Stops",
+                             value = nrow(skybus_data),
+                             theme = "bg-gradient-purple-pink",
+                             showcase = bsicons::bs_icon("bus-front"),
+                             showcase_layout = "top right"
+                           )),
+                actionLink("citytram_link",
+                           value_box(
+                             title = "Total City Circle Tram Stops",
+                             value = nrow(citytram_data),
+                             theme = "bg-gradient-cyan-pink",
+                             showcase = bsicons::bs_icon("train-lightrail-front"),
+                             showcase_layout = "top right"
+                           ))
+              ),
+              hr(),
+              
+              # Map for touristic transportation
               sidebarLayout(
+                position = "right",
                 sidebarPanel(
-                  # 라디오 버튼으로 변경
-                  radioButtons("detailed_stop_type", 
-                               label = tags$p(fa("filter", fill = "#e37400"), 
-                                              "Select Stop Type"),
-                               choices = list("All Stops" = "All Stops", 
-                                              "Tram Stops" = "Tram Stops", 
-                                              "Train Stations" = "Train Stations"),
-                               selected = "All Stops")
+                  radioButtons("touristic_stop_type", 
+                               label = tags$p(fa("filter", fill = "#244f76"), 
+                                              "Select Touristic Stop Type"),
+                               choices = touristic_choiceVec,
+                               selected = "All Touristic Stops")
                 ),
                 mainPanel(
-                  highchartOutput("station_details_chart", height = "600px")
+                  leafletOutput("touristic_map", height = "600px")
                 )
               ),
               hr(),
-              h5('Data Source: Melbourne Public Transport',
+              h5('Data Source: Melbourne Touristic Transport', 
                  style = "font-size:12px;")
             )
   )
 )
-
 
 ################
 # SHINY SERVER #
 ################
 server <- shinyServer(function(input, output, session) {
   
-  ########################
-  # Overview Tab - Map #
-  ########################
+  ##################################### Transportation map #####################################
   output$station_map <- renderLeaflet({
     # 선택한 정류장 타입에 따른 필터링
     filtered_data <- switch(input$stop_type,
-                            "Tram Stops" = tram_data %>%
-                              select(stop_id, latitude, longitude, stop_name, ticketzone, routeussp),
-                            "Train Stations" = train_data %>%
-                              mutate(stop_id = NA, stop_name = station, ticketzone = NA, routeussp = NA) %>%
-                              select(stop_id, latitude, longitude, stop_name, ticketzone, routeussp),
-                            "All Stops" = rbind(
-                              tram_data %>%
-                                select(stop_id, latitude, longitude, stop_name, ticketzone, routeussp),
-                              train_data %>%
-                                mutate(stop_id = NA, stop_name = station, ticketzone = NA, routeussp = NA) %>%
+                            "Tram Stops" = {
+                              tram_filtered <- tram_data %>%
                                 select(stop_id, latitude, longitude, stop_name, ticketzone, routeussp)
-                            )
+                              if (!is.null(input$tram_number)) {
+                                tram_filtered <- tram_filtered %>%
+                                  filter(routeussp %in% input$tram_number)
+                              }
+                              tram_filtered
+                            },
+                            "Train Stations" = {
+                              train_filtered <- train_data %>%
+                                select(stop_id, latitude, longitude, stop_name, ticketzone, routeussp)
+                              if (!is.null(input$train_lines)) {
+                                train_filtered <- train_filtered %>%
+                                  filter(routeussp %in% input$train_lines)
+                              }
+                              train_filtered
+                            },
+                            "All Stops" = {
+                              tram_filtered <- tram_data %>%
+                                select(stop_id, latitude, longitude, stop_name, ticketzone, routeussp)
+                              if (!is.null(input$tram_number)) {
+                                tram_filtered <- tram_filtered %>%
+                                  filter(routeussp %in% input$tram_number)
+                              }
+                              combined_data <- rbind(
+                                tram_filtered,
+                                train_data %>%
+                                  select(stop_id, latitude, longitude, stop_name, ticketzone, routeussp)
+                              )
+                              combined_data
+                            }
     )
     
-    # 멜버른 구역을 지도에 추가 및 트램, 기차역 마커 표시
+    # 멜버른 구역을 지도에 추가 및 트램, 기차역, 버스 정류장 마커 표시
     leaflet() %>%
       addProviderTiles(providers$CartoDB.Positron) %>%
       setView(lng = 144.9631, lat = -37.8136, zoom = input$zoom_level) %>%
@@ -170,32 +243,47 @@ server <- shinyServer(function(input, output, session) {
         data = filtered_data,
         lat = ~latitude, lng = ~longitude,
         popup = ~paste("Stop Name: ", stop_name),
-        color = ~ifelse(input$stop_type == "Tram Stops", "red", "blue"),
+        color = ~ifelse(input$stop_type == "Tram Stops", "royalblue", 
+                        ifelse(input$stop_type == "Train Stations", "green", "orchid")),  
         radius = 50
       )
   })
   
-  
-  ###############################
-  # Details Tab - Highchart Chart #
-  ###############################
-  output$station_details_chart <- renderHighchart({
-    # 선택된 정류장 타입에 따라 데이터 필터링
-    filtered_data <- switch(input$detailed_stop_type,
-                            "Tram Stops" = tram_data,
-                            "Train Stations" = train_data,
-                            "All Stops" = rbind(tram_data, train_data))
+  ##################################### Touristic map #####################################
+  output$touristic_map <- renderLeaflet({
+    # 각 투어리스틱 정류장 데이터 준비
+    shuttle_data_mod <- shuttle_data %>%
+      mutate(routeussp = NA) %>% 
+      select(stop_id, stop_name, latitude, longitude, routeussp)
     
-    # 역별 데이터 시각화
-    highchart() %>%
-      hc_chart(type = "bar") %>%
-      hc_title(text = paste("Number of Stops for", input$detailed_stop_type)) %>%
-      hc_xAxis(categories = filtered_data$stop_name) %>%
-      hc_add_series(name = "Stops", data = nrow(filtered_data), color = "#3498DB") %>%
-      hc_plotOptions(bar = list(
-        dataLabels = list(enabled = TRUE)
-      )) %>%
-      hc_legend(enabled = FALSE)
+    skybus_data_mod <- skybus_data %>%
+      select(stop_id, stop_name, latitude, longitude, routeussp)
+    
+    citytram_data_mod <- citytram_data %>%
+      mutate(stop_id = row_number(), routeussp = NA) %>%
+      select(stop_id, stop_name, latitude, longitude, routeussp)
+    
+    # 선택된 투어리스틱 정류장 타입에 따라 데이터 필터링
+    tour_filtered_data <- switch(input$touristic_stop_type,
+                                 "Visitor Shuttle" = shuttle_data_mod,
+                                 "SkyBus" = skybus_data_mod,
+                                 "City Circle Tram" = citytram_data_mod,
+                                 "All Touristic Stops" = bind_rows(shuttle_data_mod, skybus_data_mod, citytram_data_mod)
+    )
+    
+    # 지도에 데이터 추가 및 마커 표시
+    leaflet() %>%
+      addProviderTiles(providers$CartoDB.Positron) %>%
+      setView(lng = 144.9631, lat = -37.8136, zoom = 15) %>%
+      addCircles(
+        data = tour_filtered_data,
+        lat = ~latitude, lng = ~longitude,
+        popup = ~paste("Stop Name: ", stop_name),
+        color = ~ifelse(input$touristic_stop_type == "Visitor Shuttle", "green", 
+                  ifelse(input$touristic_stop_type == "SkyBus", "darkolivegreen",
+                  ifelse(input$touristic_stop_type == "City Circle Tram", "royalblue", "violet"))),
+        radius = 50
+      )
   })
   
   ##########################
@@ -209,13 +297,29 @@ server <- shinyServer(function(input, output, session) {
     updateRadioButtons(session, "stop_type", selected = "Train Stations")
   })
   
-  # 'Overview of Melbourne Tram and Train Stations' 클릭 시 All Stops로 변경
+  observeEvent(input$bus_link, {
+    updateRadioButtons(session, "stop_type", selected = "Bus Stops")
+  })
+  
   observeEvent(input$tram_title, {
     updateRadioButtons(session, "stop_type", selected = "All Stops")
   })
   
-  observeEvent(input$details_title, {
-    updateRadioButtons(session, "detailed_stop_type", selected = "All Stops")
+  # Observe link click events for touristic value boxes
+  observeEvent(input$visitor_shuttle_link, {
+    updateRadioButtons(session, "touristic_stop_type", selected = "Visitor Shuttle")
+  })
+  
+  observeEvent(input$skybus_link, {
+    updateRadioButtons(session, "touristic_stop_type", selected = "SkyBus")
+  })
+  
+  observeEvent(input$citytram_link, {
+    updateRadioButtons(session, "touristic_stop_type", selected = "City Circle Tram")
+  })
+  
+  observeEvent(input$touristic_title, {
+    updateRadioButtons(session, "touristic_stop_type", selected = "All Touristic Stops")
   })
 })
 

@@ -19,7 +19,6 @@ home_tab <- tabPanel(
       position: relative;
     ",
     
-    # Text Overlay
     tags$div(
       style = "
         position: absolute;
@@ -39,7 +38,7 @@ home_tab <- tabPanel(
 
   # Additional Welcome Text
   fluidRow(
-    column(2), # Empty column for padding on the left
+    column(2), 
     column(8, align = "left", 
            h2("Welcome"),
            HTML("
@@ -61,7 +60,7 @@ home_tab <- tabPanel(
              </ul>
            ")
     ),
-    column(2) # Empty column for padding on the right
+    column(2) 
   )
 )
 

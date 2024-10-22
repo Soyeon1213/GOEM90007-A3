@@ -14,18 +14,13 @@ if(!require(bslib)) install.packages("bslib")
 if(!require(highcharter)) install.packages("highcharter")
 
 # Read the data files
-listings <- read_csv("Melbourne_Airbnb/listings.csv")
-listings_cleaned <- read_csv("Melbourne_Airbnb/listings_cleaned.csv")
-neighbourhoods <- st_read("Melbourne_Airbnb/neighbourhoods.geojson")
+listings <- read_csv("data/airbnb_listings.csv")
+listings_cleaned <- read_csv("data/airbnb_listings_cleaned.csv")
+neighbourhoods <- st_read("data/airbnb_neighbourhoods.geojson")
 
 # Combine the two datasets using the host_id from listings_cleaned and id from listings
 combined_listings <- listings_cleaned %>%
   left_join(listings %>% select(id, listing_url), by = c("host_id" = "id"))
-
-# Check for NA values in listing_url
-if (any(is.na(combined_listings$listing_url))) {
-  warning("Some listing URLs are NA. Check the join operation.")
-}
 
 # Define choices for visualization
 neighbourhood_choices <- unique(combined_listings$neighbourhood_cleansed)
@@ -94,6 +89,13 @@ ui <- page_navbar(
               h5('Data Source: Melbourne Airbnb',
                  style = "font-size:12px;")
             )
+  ),
+  
+  nav_panel("GGPlot Visualization",
+            fluidPage(
+              h3("GGPlot Visualization"),
+              plotOutput("ggplot_chart", height = "600px")
+            )
   )
 )
 
@@ -122,8 +124,8 @@ server <- function(input, output) {
           "Price: $", price, 
           "<br>Room Type: ", room_type, 
           "<br>Accommodates: ", accommodates,
-          "<br>Bathrooms: ", bathrooms_text,
-          "<br>Listing URL: ", listing_url
+          "<br>Bathrooms: ", bathrooms_text
+          #,"<br>Listing URL: ", listing_url
         )
       )
   })
@@ -145,6 +147,18 @@ server <- function(input, output) {
         dataLabels = list(enabled = TRUE)
       )) %>%
       hc_legend(enabled = FALSE)
+  })
+  
+  ###############################
+  # GGPlot Visualization #
+  ###############################
+  output$ggplot_chart <- renderPlot({
+    ggplot(data = combined_listings, aes(x = neighbourhood_cleansed, y = price)) +
+      geom_boxplot() +
+      labs(title = "Price Distribution by Neighborhood",
+           x = "Neighborhood",
+           y = "Price") +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1))
   })
   
   ##########################

@@ -28,15 +28,10 @@ attraction_tab <- tabPanel(
   h2("Attractions in Melbourne"),
   tableauPublicViz(
     id="AttractionMap",
-    url="https://public.tableau.com/views/AttractionMap/Sheet1?:language=en-GB&publish=yes&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link"
-  ), 
-  
-  tableauPublicViz(
-    id="TopAttractionChart",
-    url="https://public.tableau.com/shared/CR99P4C96?:display_count=n&:origin=viz_share_link",
-    width="80%"
+    url="https://public.tableau.com/views/AttractionMap/Sheet1?:language=en-GB&publish=yes&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link",
+    width = "100%",
+    height = "600px"
   )
-  
 )
 
 accomodation_tab <- tabPanel(

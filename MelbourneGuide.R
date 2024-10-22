@@ -7,17 +7,17 @@ source('tableau-in-shiny-v1.2.R')
 home_tab <- tabPanel(
   title = "Home",
   
-  # Full-width background with text overlay
   tags$div(
     style = "
-      background-image: url('https://upload.wikimedia.org/wikipedia/commons/7/74/Melbourne_skyline_sor.jpg');
-      background-size: cover;
-      background-position: center;
-      height: 100vh;
-      color: white;
-      text-align: center;
-      position: relative;
-    ",
+    background-image: url('https://upload.wikimedia.org/wikipedia/commons/7/74/Melbourne_skyline_sor.jpg');
+    background-attachment: fixed;
+    background-size: cover;
+    background-position: center;
+    height: 100vh;
+    color: white;
+    text-align: center;
+    position: relative;
+  ",
     
     tags$div(
       style = "
@@ -36,7 +36,6 @@ home_tab <- tabPanel(
     )
   ),
 
-  # Additional Welcome Text
   fluidRow(
     column(2), 
     column(8, align = "left", 
@@ -73,7 +72,9 @@ restaurant_tab <- tabPanel(
   h2("Restaurants in Melbourne"),
   tableauPublicViz(
     id="RestaurantMap",
-    url="https://public.tableau.com/views/RestaurantMap_17295190169160/Sheet1?:language=ko-KR&publish=yes&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link"
+    url="https://public.tableau.com/views/RestaurantMap_17295190169160/Sheet1?:language=ko-KR&publish=yes&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link",
+    width = "100%", 
+    height = "600px"
   )
 )
 
@@ -154,7 +155,16 @@ accomodation_tab <- tabPanel(
     url="https://public.tableau.com/views/Airbnb_17295563103790/Sheet1?:language=en-GB&publish=yes&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link",
     height="600px"
   )
+)
+
+# reference to text copied and pasted from other websites, can be deleted if unnecessary
+footer <- tags$div(
+  style = "text-align: center; padding: 20px; background-color: #f1f1f1; position: relative; bottom: 0; width: 100%; margin-top: 50px;",
   
+  tags$p("References:"),
+  tags$a(href = "https://www.australia.com/en/places/melbourne-and-surrounds/guide-to-melbourne.html#tabs-0c2df5cea2-item-405b2b8f98-tab", "Guide to Melbourne - Australia.com", target = "_blank"),
+  tags$br(),
+  tags$a(href = "https://localguidetomelbourne.com/tours", "Local Guide to Melbourne - Tours", target = "_blank")
 )
 
 ui <- navbarPage(
@@ -166,11 +176,11 @@ ui <- navbarPage(
   transportation_tab,
   restaurant_tab,
   attraction_tab,
-  accomodation_tab
+  accomodation_tab,
   
+  footer
 )
 
-# Server logic
 server <- function(input, output, session) {
   output$melbourne_intro <- renderText({
     # Assuming your text file is in the www folder

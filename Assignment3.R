@@ -12,9 +12,7 @@ library(leaflet)
 library(geojsonio)
 library(sf)
 
-######################
-# Data Pre-processing #
-######################
+###################### Data Pre-processing ######################
 
 # Data load
 tram_data <- read_csv("tram_stop.csv")
@@ -39,9 +37,8 @@ tram_numbers <- sort(unique(tram_data$routeussp))
 train_lines <- sort(unique(train_data$routeussp))
 
 
-##################
-# USER INTERFACE #
-##################
+##################################### User Interface #####################################
+ 
 ui <- page_navbar(
   title = "Melbourne Touristic information",
   theme = bs_theme(
@@ -192,9 +189,8 @@ ui <- page_navbar(
   )
 )
 
-################
-# SHINY SERVER #
-################
+
+##################################### Shiny server #####################################
 server <- shinyServer(function(input, output, session) {
   
   ##################################### Transportation map #####################################
@@ -286,9 +282,9 @@ server <- shinyServer(function(input, output, session) {
       )
   })
   
-  ##########################
-  # Observe link click events
-  ##########################
+  
+  ##################################### Observe link click event #####################################
+  
   observeEvent(input$tram_link, {
     updateRadioButtons(session, "stop_type", selected = "Tram Stops")
   })
@@ -323,8 +319,7 @@ server <- shinyServer(function(input, output, session) {
   })
 })
 
-#############
-# SHINY 실행 #
-#############
+
+##################################### Run Shiny #####################################
 
 shinyApp(ui, server)

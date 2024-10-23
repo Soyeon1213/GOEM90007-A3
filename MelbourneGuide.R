@@ -5,6 +5,8 @@ library(readr)
 library(gt)
 library(dplyr)
 library(tidyr)
+library(bslib)
+library(highcharter)
 
 source('tableau-in-shiny-v1.2.R')
 
@@ -19,6 +21,51 @@ transposed_data <- data %>%
   pivot_wider(names_from = Month, values_from = Value)
 
 
+################## Transportation Data load ##################
+tram_data <- read_csv("data/tram_stop.csv")
+train_data <- read_csv("data/train_station.csv")
+
+# Touristic Stations
+shuttle_data <- read_csv("data/visitor_shuttle.csv")
+skybus_data <- read_csv("data/skybus_stop.csv")
+citytram_data <- read_csv("data/city_tram.csv")
+
+# Overview of Tram 
+tram_length_data <- read_csv("tram_length.csv")
+
+# Tourist data
+tourist_data <- read_csv("australia_tourist.csv")
+
+# Convert the data from wide to long format
+tourist_data_long <- tourist_data %>%
+  pivot_longer(cols = -Year, names_to = "Country", values_to = "Value")
+
+# Function to get data for a specific year
+get_data_for_year <- function(year) {
+  tourist_data_long <- tourist_data %>%
+    filter(Year == year) %>%  # Year 필터 적용
+    pivot_longer(cols = -Year, names_to = "Country", values_to = "Value") %>%  # 열 변환
+    arrange(desc(Value)) %>%  # Value 값으로 내림차순 정렬
+    head(10)  # 상위 10개 국가만 반환
+  return(tourist_data_long)
+}
+
+# Prepare list of data for each year
+years <- sort(unique(tourist_data_long$Year))
+yearly_data <- lapply(years, get_data_for_year)
+
+# GeoJSON file (Melbourne)
+melbourne_geojson <- st_read("data/melbourne_city.geojson")
+
+# Filter tram stops and train stations
+state_choiceVec <- c("All Stops", "Tram Stops", "Train Stations")
+
+# Touristic transportation choices
+touristic_choiceVec <- c("All Touristic Stops", "Visitor Shuttle", "SkyBus", "City Circle Tram")
+
+# Tram route numbers
+tram_numbers <- sort(unique(tram_data$routeussp))
+train_lines <- sort(unique(train_data$routeussp))
 
 ##################
 # USER INTERFACE #
@@ -102,6 +149,25 @@ home_tab <- tabPanel(
   
   br(), br(),
   
+  # 차트 추가
+  fluidRow(
+    column(12, 
+           div(class = "chart-container",
+               highchartOutput("bar_race_chart", height = "600px"),  # 차트
+               actionButton("play_pause_button", label = icon("play"), class = "btn-lg")  # 버튼에 아이콘 추가
+           )
+    )
+  ),
+  
+  br(),
+  
+  # 슬라이더 추가
+  sliderInput("year_slider", "Select Year:",
+              min = min(years), max = max(years), 
+              value = min(years), step = 1),
+  
+  br(), br(),
+
   fluidRow(
     column(3,
            actionButton("btn1", "Restaurants", class = "btn-primary", style = "width: 100%;")
@@ -120,10 +186,158 @@ home_tab <- tabPanel(
   br(), br()
 )
 
+################## Transportation UI ##################
 transportation_tab <- tabPanel(
-  title="Transportation"
+  title="Transportation",
+  
+  fluidPage(
+    # Title for Tram and Train Stations
+    actionLink("tram_title", 
+               value_box(
+                 title = NULL,
+                 value = "Overview of Melbourne Tram and Train Stations",
+                 theme = "bg-gradient-cyan-green",
+                 showcase = bsicons::bs_icon("map"),
+                 showcase_layout = "top right"
+               )),
+    hr(),
+    h5(strong("Select Stop Type, Map View, and Zoom to explore stations on the map."),
+       style = "font-size:16px;"),
+    
+    # Value boxes for Tram, Train, and Bus Stops
+    layout_columns(
+      actionLink("tram_link",
+                 value_box(
+                   title = "Total Tram Stops",
+                   value = nrow(tram_data),
+                   theme = "bg-gradient-cyan-green",
+                   showcase = bsicons::bs_icon("train-lightrail-front"),
+                   showcase_layout = "top right"
+                 )),
+      actionLink("train_link",
+                 value_box(
+                   title = "Total Train Stations",
+                   value = nrow(train_data),
+                   theme = "bg-gradient-teal-blue",
+                   showcase = bsicons::bs_icon("train-front"),
+                   showcase_layout = "top right"
+                 ))
+    ),
+    hr(),
+    
+    # Filter options and map for Transportation
+    sidebarLayout(
+      sidebarPanel(
+        radioButtons("stop_type", 
+                     label = tags$p(fa("filter", fill = "#244f76"), 
+                                    "Select Stop Type"),
+                     choices = list("All Stops" = "All Stops", 
+                                    "Tram Stops" = "Tram Stops", 
+                                    "Train Stations" = "Train Stations"),
+                     selected = "All Stops"),
+        # Conditional inputs for tram, train
+        conditionalPanel(
+          condition = "input.stop_type == 'Tram Stops'",
+          pickerInput(
+            inputId = "tram_number",
+            label = "Select Tram Number:",
+            choices = tram_numbers,
+            selected = tram_numbers,
+            multiple = TRUE,
+            options = list(`actions-box` = TRUE)
+          )
+        ),
+        conditionalPanel(
+          condition = "input.stop_type == 'Train Stations'",
+          pickerInput(
+            inputId = "train_lines",
+            label = "Select Train Line:",
+            choices = train_lines,
+            selected = train_lines,
+            multiple = TRUE,
+            options = list(`actions-box` = TRUE)
+          )
+        ),
+        sliderInput("zoom_level", "Zoom Level:", 
+                    min = 10, max = 16, value = 12, step = 1)
+      ),
+      mainPanel(
+        leafletOutput("station_map", height = "600px")
+      )
+    ),
+    hr(),
+    
+    # Touristic Transportation Section
+    actionLink("touristic_title", 
+               value_box(
+                 title = NULL,
+                 value = "Overview of Touristic Transportation",
+                 theme = "bg-gradient-purple-cyan",
+                 showcase = bsicons::bs_icon("person-arms-up"),
+                 showcase_layout = "top right"
+               )),
+    hr(),
+    h5(strong("Select Stop Type and Zoom to explore touristic transportation on the map."),
+       style = "font-size:16px;"),
+    
+    # Value boxes for touristic stops
+    layout_columns(
+      actionLink("visitor_shuttle_link",
+                 value_box(
+                   title = "Total Visitor Shuttle Stops",
+                   value = nrow(shuttle_data),
+                   theme = "bg-gradient-purple-blue",
+                   showcase = bsicons::bs_icon("bus-front"),
+                   showcase_layout = "top right"
+                 )),
+      actionLink("skybus_link",
+                 value_box(
+                   title = "Total SkyBus Stops",
+                   value = nrow(skybus_data),
+                   theme = "bg-gradient-purple-pink",
+                   showcase = bsicons::bs_icon("airplane"),
+                   showcase_layout = "top right"
+                 )),
+      actionLink("citytram_link",
+                 value_box(
+                   title = "Total City Circle Tram Stops",
+                   value = nrow(citytram_data),
+                   theme = "bg-gradient-cyan-pink",
+                   showcase = bsicons::bs_icon("train-lightrail-front"),
+                   showcase_layout = "top right"
+                 ))
+    ),
+    hr(),
+    
+    # Map for touristic transportation
+    sidebarLayout(
+      position = "right",
+      sidebarPanel(
+        radioButtons("touristic_stop_type", 
+                     label = tags$p(fa("filter", fill = "#244f76"), 
+                                    "Select Touristic Stop Type"),
+                     choices = touristic_choiceVec,
+                     selected = "All Touristic Stops")
+      ),
+      mainPanel(
+        leafletOutput("touristic_map", height = "600px")
+      )
+    ),
+    hr(),
+    h5('Data Source: Melbourne Touristic Transport', 
+       style = "font-size:12px;"),
+  
+  # 추가하려는 Tram System Length 차트
+  h3("Tram System Length by City", style = "text-align: center;"),
+  highchartOutput("tram_length_bar_chart", height = "600px"),  # 차트 추가
+  hr(),
+  
+  h5('Data Source: Melbourne Touristic Transport', 
+     style = "font-size:12px;")
+  ),
 )
 
+  
 restaurant_tab <- tabPanel(
   title = "Restaurants",
   
@@ -310,6 +524,7 @@ ui <- navbarPage(
   header = setUpTableauInShiny(),
   title = "Melbourne City Guide",
   
+  
   home_tab,
   transportation_tab,
   restaurant_tab,
@@ -429,6 +644,374 @@ server <- function(input, output, session) {
           columns = c("Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov")
         )
       )
+  })
+  ##################################### Overview of Tourists number #####################################
+  
+  # Reactive value for the play/pause state
+  playing <- reactiveVal(FALSE)
+  
+  # Function to move to the next year after animation is complete
+  nextStep <- function() {
+    if (input$year_slider < max(years)) {
+      updateSliderInput(session, "year_slider", value = input$year_slider + 1)
+    } else {
+      playing(FALSE)  # Stop when it reaches the last year
+    }
+  }
+  # 고정된 색상을 지정할 주요 국가 목록과 색상 팔레트
+  fixed_countries <- c("Japan", "New Zealand", "United States of America",
+                       "UK, CIs & IOM", "Singapore", "Germany", "Hong Kong",
+                       "Canada", "Malaysia", "India", "Korea, South")
+  
+  fixed_colors <- c(
+    "New Zealand" = "#feb1a9", 
+    "China" = "#fed2bb",
+    "United States of America" = "#fef2cd",
+    "UK, CIs & IOM" = "#e7f2c3", 
+    "India" = "#cff2b8",
+    "Japan" = "#bbe5ca",
+    "Singapore" = "#a6d8db",
+    "Korea, South" = "#b2baea",
+    "Indonesia" = "#bd9cf9",
+    "Hong Kong" = "#b8abf2",
+    "Germany" = "#91c2eb",
+    "Canada" = "#91c2eb",
+    "Malaysia" = "#ffccd5",
+    "Taiwan" = "#ffccd5"
+  )
+  
+  # 국가별 색상을 고정하기 위한 국가 목록
+  countries <- unique(tourist_data %>% select(-Year) %>% names())
+  
+  # 고정된 국가 외의 국가들에 대해 색상을 생성하는 함수 (리스트로 변환)
+  custom_colors <- reactive({
+    # 고정된 국가들에 대한 색상 매핑
+    dynamic_countries <- setdiff(countries, names(fixed_colors))  # 고정되지 않은 국가들
+    dynamic_palette <- colorRampPalette(c("#4CAF50", "#FFC107", "#F44336", "#2196F3"))(length(dynamic_countries))
+    
+    # 고정된 국가와 동적으로 생성된 국가 색상을 결합
+    color_palette_list <- c(fixed_colors, setNames(dynamic_palette, dynamic_countries))
+    return(color_palette_list)
+  })
+  
+  # 데이터 준비
+  data_prepared <- reactive({
+    get_data_for_year(input$year_slider)
+  })
+  
+  # 전체 방문자 수 계산
+  total_visitors <- reactive({
+    total_data <- tourist_data %>% filter(Year == input$year_slider)
+    total_sum <- total_data %>% select(-Year) %>% rowSums(na.rm = TRUE)  # Year를 제외하고 모든 열의 합계
+    return(total_sum)
+  })
+  
+  max_visitors <- reactive({
+    max(tourist_data %>% select(-Year) %>% unlist(use.names = FALSE), na.rm = TRUE)
+  })
+  
+  # Highchart 객체 생성 (반응형 처리)
+  output$bar_race_chart <- renderHighchart({
+    hc <- highchart() %>%
+      hc_chart(type = "bar") %>%
+      
+      # 차트 제목과 서브 타이틀
+      hc_title(text = "Top Tourist Destinations Over Time", align = "left",
+               style = list(fontSize = "24px", color = "#333333")) %>%
+      hc_subtitle(text = "Source: Australian Bureau of Statistics", align = "left",
+                  style = list(fontSize = "14px", color = "#666666")) %>%
+      
+      # X축 설정 (Country 카테고리)
+      hc_xAxis(categories = data_prepared()$Country,
+               title = list(text = NULL),
+               gridLineWidth = 0, lineWidth = 0,
+               labels = list(style = list(fontSize = "14px", color = "#444444"))) %>%
+      
+      # Y축 설정 (Value)
+      hc_yAxis(min = 0, max = max_visitors(),
+               title = list(text = "Number of Tourists", align = 'high',
+                            style = list(fontSize = "16px", color = "#444444")),
+               labels = list(style = list(fontSize = "14px", color = "#444444")),
+               gridLineWidth = 1) %>%
+      
+      # 툴팁 설정 (단위를 천 단위 쉼표로 표시)
+      hc_tooltip(pointFormat = 'Country: <b>{point.name}</b><br>Tourists: <b>{point.y:,.0f}</b>',
+                 style = list(fontSize = "14px")) %>%
+      
+      # 바 차트 옵션 설정 (숫자를 차트 옆에 표시, 천단위 쉼표 추가)
+      hc_plotOptions(bar = list(
+        dataLabels = list(
+          enabled = TRUE,
+          format = '{point.y:,.0f}',  # 천 단위 쉼표를 표시
+          style = list(fontSize = "12px", color = "#FFFFFF", textOutline = "none"),
+          align = "right",  # 바 오른쪽에 숫자 배치
+          inside = FALSE),  # 바 내부에 배치
+        grouping = FALSE,
+        borderRadius = 8,  # 바 모서리 둥글게
+        pointPadding = 0.1,  # 바 간격
+        groupPadding = 0.05,  # 그룹 간격
+        colorByPoint = TRUE,  # 각 바의 색상을 다르게 적용
+        animation = list(
+          duration = 1  # 애니메이션 시간을 2초로 설정
+        )
+      )) %>%
+      
+      # 시리즈 데이터 추가 (각 국가별 색상 지정)
+      hc_add_series(name = paste("Year", input$year_slider),
+                    data = purrr::map2(data_prepared()$Country, data_prepared()$Value,
+                                       ~list(name = .x, y = .y, color = custom_colors()[[.x]])))  # custom_colors() 호출
+    
+    # 레전드 추가
+    hc <- hc %>%
+      hc_legend(enabled = TRUE,
+                layout = "horizontal",
+                align = "center",
+                verticalAlign = "top",
+                title = list(
+                  text = paste("Total (Country of stay/residence):",
+                               formatC(total_visitors(), format = "f", big.mark = ",", digits = 0)  # 모든 국가의 방문자 수 합산
+                  )),
+                itemStyle = list(fontSize = "16px", fontWeight = "bold", color = "#000000"))
+    
+    # 크레딧 비활성화
+    hc <- hc %>%
+      hc_credits(enabled = FALSE) %>%
+      hc_size(height = 600)  # 차트 크기 설정
+    
+    return(hc)
+  })
+  
+  # Reactive value for the play/pause state
+  playing <- reactiveVal(FALSE)
+  
+  # Function to move to the next year after animation is complete
+  nextStep <- function() {
+    if (input$year_slider < max(years)) {
+      updateSliderInput(session, "year_slider", value = input$year_slider + 1)
+    } else {
+      playing(FALSE)  # Stop when it reaches the last year
+    }
+  }
+  
+  # 차트를 자연스럽게 업데이트하기 위해 highchartProxy 사용
+  observeEvent(input$year_slider, {
+    data_prepared <- get_data_for_year(input$year_slider)
+    
+    # 차트 시리즈만 업데이트 (리렌더링 방지)
+    highchartProxy("bar_race_chart") %>%
+      hcpxy_update_series(
+        id = 0,  # 시리즈가 하나일 경우 id = 0 사용
+        data = data_prepared$Value,  # 데이터만 업데이트
+        name = paste("Year", input$year_slider)
+      ) %>%
+      hcpxy_update(
+        list(
+          xAxis = list(categories = data_prepared$Country)
+        )
+      )
+  })
+  
+  # 애니메이션이 완료된 후에만 자동으로 차트 갱신
+  observeEvent(input$animationComplete, {
+    if (playing()) {
+      nextStep()  # 애니메이션이 끝난 후에만 다음 연도로 이동
+    }
+  })
+  
+  # 버튼의 아이콘을 Play/Pause로 전환
+  observeEvent(input$play_pause_button, {
+    if (playing()) {
+      updateActionButton(session, "play_pause_button",
+                         label = HTML(as.character(icon("play"))))  # Play 버튼으로 전환
+      playing(FALSE)  # playing 상태를 FALSE로 전환
+    } else {
+      updateActionButton(session, "play_pause_button",
+                         label = HTML(as.character(icon("pause"))))  # Pause 버튼으로 전환
+      playing(TRUE)  # playing 상태를 TRUE로 전환
+      nextStep()  # 바로 다음 연도로 이동
+    }
+  })
+  
+  # 자동 업데이트를 위한 observe 함수
+  observe({
+    if (playing()) {
+      invalidateLater(0.7, session)  # 1.5초마다 다음 연도로 이동
+      nextStep()  # playing 상태가 TRUE일 때만 실행
+    }
+  })
+  
+  
+  ##################################### Transportation map #####################################
+  output$station_map <- renderLeaflet({
+    # 선택한 정류장 타입에 따른 필터링
+    filtered_data <- switch(input$stop_type,
+                            "Tram Stops" = {
+                              tram_filtered <- tram_data %>%
+                                select(stop_id, latitude, longitude, stop_name, ticketzone, routeussp)
+                              if (!is.null(input$tram_number)) {
+                                tram_filtered <- tram_filtered %>%
+                                  filter(routeussp %in% input$tram_number)
+                              }
+                              tram_filtered
+                            },
+                            "Train Stations" = {
+                              train_filtered <- train_data %>%
+                                select(stop_id, latitude, longitude, stop_name, ticketzone, routeussp)
+                              if (!is.null(input$train_lines)) {
+                                train_filtered <- train_filtered %>%
+                                  filter(routeussp %in% input$train_lines)
+                              }
+                              train_filtered
+                            },
+                            "All Stops" = {
+                              tram_filtered <- tram_data %>%
+                                select(stop_id, latitude, longitude, stop_name, ticketzone, routeussp)
+                              if (!is.null(input$tram_number)) {
+                                tram_filtered <- tram_filtered %>%
+                                  filter(routeussp %in% input$tram_number)
+                              }
+                              combined_data <- rbind(
+                                tram_filtered,
+                                train_data %>%
+                                  select(stop_id, latitude, longitude, stop_name, ticketzone, routeussp)
+                              )
+                              combined_data
+                            }
+    )
+    
+    leaflet() %>%
+      addProviderTiles(providers$CartoDB.Positron) %>%
+      setView(lng = 144.9631, lat = -37.8136, zoom = input$zoom_level) %>%
+      addCircles(
+        data = filtered_data,
+        lat = ~latitude, lng = ~longitude,
+        popup = ~paste("Stop Name: ", stop_name),
+        color = ~ifelse(input$stop_type == "Tram Stops", "royalblue", 
+                        ifelse(input$stop_type == "Train Stations", "green", "orchid")),  
+        radius = 50
+      )
+  })
+  
+  
+  ##################################### Touristic map #####################################
+  output$touristic_map <- renderLeaflet({
+    shuttle_data_mod <- shuttle_data %>%
+      mutate(routeussp = NA) %>% 
+      select(stop_id, stop_name, latitude, longitude, routeussp)
+    
+    skybus_data_mod <- skybus_data %>%
+      select(stop_id, stop_name, latitude, longitude, routeussp)
+    
+    citytram_data_mod <- citytram_data %>%
+      mutate(stop_id = row_number(), routeussp = NA) %>%
+      select(stop_id, stop_name, latitude, longitude, routeussp)
+    
+    tour_filtered_data <- switch(input$touristic_stop_type,
+                                 "Visitor Shuttle" = shuttle_data_mod,
+                                 "SkyBus" = skybus_data_mod,
+                                 "City Circle Tram" = citytram_data_mod,
+                                 "All Touristic Stops" = bind_rows(shuttle_data_mod, skybus_data_mod, citytram_data_mod)
+    )
+    
+    leaflet() %>%
+      addProviderTiles(providers$CartoDB.Positron) %>%
+      setView(lng = 144.9631, lat = -37.8136, zoom = 15) %>%
+      addCircles(
+        data = tour_filtered_data,
+        lat = ~latitude, lng = ~longitude,
+        popup = ~paste("Stop Name: ", stop_name),
+        color = ~ifelse(input$touristic_stop_type == "Visitor Shuttle", "green", 
+                        ifelse(input$touristic_stop_type == "SkyBus", "darkolivegreen",
+                               ifelse(input$touristic_stop_type == "City Circle Tram", "royalblue", "violet"))),
+        radius = 50
+      )
+  })
+  
+  ##################################### Tram length chart #####################################  
+  # Highchart 출력
+  output$tram_length_bar_chart <- renderHighchart({
+    
+    # 데이터 준비 (필요에 따라 데이터 정렬)
+    data_prepared <- tram_length_data %>%
+      select(city, length, country) %>%
+      arrange(desc(length))  # 길이를 기준으로 내림차순 정렬
+    
+    # 데이터 리스트 변환
+    data_list <- purrr::pmap(list(data_prepared$city, data_prepared$length, data_prepared$country), function(city, length, country) {
+      list(name = city, y = length, country = country)
+    })
+    
+    # highchart 객체 생성
+    highchart() %>%
+      hc_chart(type = "bar") %>%
+      hc_title(text = "Tram System Length by City", align = "left") %>%
+      hc_subtitle(text = 'Source: https://rail.nridigital.com/future_rail_sep23/10_largest_tram_networks', align = 'left') %>%
+      
+      # X축 설정 (city를 카테고리로 사용)
+      hc_xAxis(categories = data_prepared$city,
+               title = list(text = NULL),
+               gridLineWidth = 1,  # 그리드 라인 설정
+               lineWidth = 0) %>%  # X축 라인 설정
+      
+      # Y축 설정 (length를 y축 값으로 사용)
+      hc_yAxis(min = 0,
+               title = list(text = 'Length (km)', align = 'high'),
+               labels = list(overflow = 'justify'),
+               gridLineWidth = 0) %>%
+      
+      # 툴팁 설정
+      hc_tooltip(pointFormat = 'Country: <b>{point.country}</b>') %>%
+      
+      
+      # 바 차트 옵션 설정
+      hc_plotOptions(bar = list(
+        borderRadius = '3%',
+        dataLabels = list(
+          enabled = TRUE
+        ),
+        groupPadding = 0.1  # 바 간격 설정
+      )) %>%
+      
+      
+      # 크레딧 비활성화
+      hc_credits(enabled = FALSE) %>%
+      
+      # 시리즈 데이터 설정 (도시별 길이 데이터)
+      hc_add_series(name = "Tram System Length",
+                    data = data_list,
+                    colorByPoint = TRUE)  # 각 바의 색상 변경
+  })
+  
+  
+  ##################################### Observe link click event #####################################
+  
+  observeEvent(input$tram_link, {
+    updateRadioButtons(session, "stop_type", selected = "Tram Stops")
+  })
+  
+  observeEvent(input$train_link, {
+    updateRadioButtons(session, "stop_type", selected = "Train Stations")
+  })
+  
+  observeEvent(input$tram_title, {
+    updateRadioButtons(session, "stop_type", selected = "All Stops")
+  })
+  
+  # Observe link click events for touristic value boxes
+  observeEvent(input$visitor_shuttle_link, {
+    updateRadioButtons(session, "touristic_stop_type", selected = "Visitor Shuttle")
+  })
+  
+  observeEvent(input$skybus_link, {
+    updateRadioButtons(session, "touristic_stop_type", selected = "SkyBus")
+  })
+  
+  observeEvent(input$citytram_link, {
+    updateRadioButtons(session, "touristic_stop_type", selected = "City Circle Tram")
+  })
+  
+  observeEvent(input$touristic_title, {
+    updateRadioButtons(session, "touristic_stop_type", selected = "All Touristic Stops")
   })
 }
 

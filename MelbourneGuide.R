@@ -1,8 +1,28 @@
 library(shiny)
 library(shinythemes)
 library(shinyjs)
+library(readr)
+library(gt)
+library(dplyr)
+library(tidyr)
 
 source('tableau-in-shiny-v1.2.R')
+
+##################
+#      DATA      #
+##################
+
+data <- read_csv("data/melbourne_weather.csv", show_col_types = FALSE)
+
+transposed_data <- data %>%
+  pivot_longer(cols = -Month, names_to = "Metric", values_to = "Value") %>%
+  pivot_wider(names_from = Month, values_from = Value)
+
+
+
+##################
+# USER INTERFACE #
+##################
 
 home_tab <- tabPanel(
   title = "Home",
@@ -35,7 +55,7 @@ home_tab <- tabPanel(
       p("Discover the best places to visit and things to do in the city.", style = "font-size: 1.5em; color: white;")
     )
   ),
-
+  
   fluidRow(
     column(2), 
     column(8, align = "left", 
@@ -59,8 +79,39 @@ home_tab <- tabPanel(
              </ul>
            ")
     ),
-    column(2) 
-  )
+    column(2)
+  ),
+  
+  fluidRow(
+    column(2), 
+    column(8, align = "left", 
+           h2("Melbourne's Seasonal Weather", style = "font-size: 2.5em; font-weight: bold;"),
+           p("Explore Melbourne's average temperature, rainfall, and rainy days throughout the year.",
+             style = "font-size: 1.5em;")
+    ),
+    column(2)
+  ),
+  
+  gt_output('weather_table'),
+  
+  br(), br(),
+  
+  fluidRow(
+    column(3,
+           actionButton("btn1", "Restaurants", class = "btn-primary", style = "width: 100%;")
+    ),
+    column(3,
+           actionButton("btn2", "Attractions", class = "btn-primary", style = "width: 100%;")
+    ),
+    column(3,
+           actionButton("btn3", "Transportation", class = "btn-primary", style = "width: 100%;")
+    ),
+    column(3,
+           actionButton("btn4", "Accomodation", class = "btn-primary", style = "width: 100%;")
+    )
+  ),
+  
+  br(), br()
 )
 
 transportation_tab <- tabPanel(
@@ -68,15 +119,95 @@ transportation_tab <- tabPanel(
 )
 
 restaurant_tab <- tabPanel(
-  title="Restaurants",
-  h2("Restaurants in Melbourne"),
-  tableauPublicViz(
-    id="RestaurantMap",
-    url="https://public.tableau.com/views/RestaurantMap_17295190169160/Sheet1?:language=ko-KR&publish=yes&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link",
-    width = "100%", 
-    height = "600px"
+  title = "Restaurants",
+  
+  # 제목과 스타일링 추가
+  h2("Restaurants in Melbourne", style = "text-align: center; font-size: 2.5em; font-weight: bold; margin-bottom: 20px;"),
+  
+  # 소개 문구 추가
+  p(
+    "Welcome to Melbourne's culinary paradise, where a vibrant mix of cultures meets on the dining table!",
+    style = "text-align: center; font-size: 1.5em; font-weight: bold; color: #555; margin-bottom: 15px;"
+  ),
+  
+  p(
+    "As one of the world’s most diverse cities, Melbourne offers an endless variety of international cuisines. ",
+    "Here, you’ll experience flavors from every corner of the globe, reflecting the city’s rich immigrant history.",
+    "Melbourne is truly a 'city of gastronomy', home to world-renowned food festivals and some of the finest restaurants.",
+    "No matter what you’re craving, this city is sure to satisfy any taste bud.",
+    style = "text-align: justify; font-size: 1.3em; color: #777; line-height: 1.7; margin-bottom: 30px;"
+  ),
+  
+  p(
+    "Ready to embark on a food journey? Explore the map below to discover the best places to eat in Melbourne!",
+    style = "text-align: center; font-size: 1.4em; font-weight: bold; color: #555; margin-bottom: 30px;"
+  ),
+  
+  # 지도 섹션의 가운데 정렬 및 고정된 크기 설정
+  div(
+    style = "text-align: center; width: 100%; margin-bottom: 50px;",  # 지도의 가운데 정렬
+    div(
+      style = "display: inline-block; width: 800px; height: 600px; overflow: hidden;",
+      tableauPublicViz(
+        id = "RestaurantMap",
+        url = "https://public.tableau.com/views/RestaurantMap_17295190169160/Sheet1?:language=ko-KR&publish=yes&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link"
+      )
+    )
+  ),
+  
+  # 제목 및 설명 추가 (레스토랑 정보 위에)
+  h3("Top 5 Ranked Restaurants in Melbourne", style = "text-align: center; font-weight: bold; margin-top: 20px;"),
+  p("These restaurants have received 5-star ratings from TripAdvisor.", style = "text-align: center; font-size: 1.1em; color: #888; margin-bottom: 40px;"),
+  
+  # 지도가 끝난 후 간격 추가
+  br(), br(),
+  
+  # 레스토랑 정보 섹션 (지도 아래에 추가)
+  div(
+    style = "padding-top: 50px;",  # 지도와 레스토랑 사이에 간격 추가
+    fluidRow(
+      # 레스토랑 1
+      column(4, align = "center",
+             img(src = "ginger_olive.jpg", height = "150px", style = "margin-bottom: 15px;"),
+             h4("Ginger Olive Restaurant and Grill"),
+             p("U 2 38 Manchester Lane, Melbourne, Victoria 3000"),
+             a("Website Link", href = "https://gingerolive.com.au/", target = "_blank")
+      ),
+      # 레스토랑 2
+      column(4, align = "center",
+             img(src = "hardware_club.jpg", height = "150px", style = "margin-bottom: 15px;"),
+             h4("The Hardware Club"),
+             p("43 Hardware Lane, Melbourne, Victoria 3000"),
+             a("Website Link", href = "https://www.thehardwareclub.com/", target = "_blank")
+      ),
+      # 레스토랑 3
+      column(4,              align = "center",
+             img(src = "ten_square.jpg", height = "150px", style = "margin-bottom: 15px;"),
+             h4("Ten Square Café"),
+             p("120 Hardware St, Melbourne, Victoria 3000"),
+             a("Website Link", href = "https://www.tensquarecafe.com.au/", target = "_blank")
+      )
+    ),
+    
+    fluidRow(
+      # 레스토랑 4
+      column(6, align = "center",
+             img(src = "caterinas.jpg", height = "150px", style = "margin-bottom: 15px;"),
+             h4("Caterina's Cucina E Bar"),
+             p("221 Queen St, Melbourne, Victoria 3000"),
+             a("Website Link", href = "https://www.caterinas.com.au/", target = "_blank")
+      ),
+      # 레스토랑 5
+      column(6, align = "center",
+             img(src = "tokui_sushi.jpg", height = "150px", style = "margin-bottom: 15px;"),
+             h4("Tokui Sushi"),
+             p("260 Lonsdale St, Melbourne, Victoria 3000"),
+             a("Google Link", href = "https://g.co/kgs/fWawkKC", target = "_blank")
+      )
+    )
   )
 )
+
 
 attraction_tab <- tabPanel(
   title = "Attractions",
@@ -108,7 +239,7 @@ attraction_tab <- tabPanel(
       height = "700px"
     )
   ),
-
+  
   tags$div(
     style = "text-align: center; margin-top: 50px; margin-bottom: 50px;",
     h3("Tours"),
@@ -168,6 +299,7 @@ footer <- tags$div(
 )
 
 ui <- navbarPage(
+  id = "navbar",  # 'id' 속성 추가
   theme = shinytheme("paper"), # other themes: cerulean, cosmo, lumen, flatly
   header=setUpTableauInShiny(),
   title = "Melbourne City Guide",
@@ -181,13 +313,114 @@ ui <- navbarPage(
   footer
 )
 
+
+################
+# SHINY SERVER #
+################
+
 server <- function(input, output, session) {
+  
+  # Home 화면 탭 이동 버튼 처리
+  observeEvent(input$btn1, {
+    updateTabsetPanel(session, "navbar", selected = "Restaurants")
+  })
+  
+  observeEvent(input$btn2, {
+    updateTabsetPanel(session, "navbar", selected = "Attractions")
+  })
+  
+  observeEvent(input$btn3, {
+    updateTabsetPanel(session, "navbar", selected = "Transportation")
+  })
+  
+  observeEvent(input$btn4, {
+    updateTabsetPanel(session, "navbar", selected = "Accomodation")
+  })
+  
   output$melbourne_intro <- renderText({
     # Assuming your text file is in the www folder
     readLines("data/melbourne_intro.txt")
   })
+  
+  output$weather_table <- render_gt({
+    gt(transposed_data) %>%
+      tab_header(
+        title = "Seasonal Weather in Melbourne"
+      ) %>%
+      
+      # Metric 컬럼 이름을 빈 문자열로 변경 (즉, 'Metric' 글자만 사라짐)
+      cols_label(
+        Metric = ""
+      ) %>%
+      
+      # Apply custom labels for the values in the 'Metric' column
+      text_transform(
+        locations = cells_body(columns = "Metric"),
+        fn = function(x) {
+          ifelse(x == "MaximumTemp", "Maximum Temp (ºC)",
+                 ifelse(x == "MinimumTemp", "Minimum Temp (ºC)",
+                        ifelse(x == "AvgRainfall", "Avg Rainfall (mm)", 
+                               ifelse(x == "AvgRainydays", "Avg Rainy Days", x))))
+        }
+      ) %>%
+      
+      # Format the numeric columns (for temperatures with 1 decimal place)
+      fmt_number(
+        columns = c("Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",         "Oct", "Nov"),
+        rows = Metric %in% c("MaximumTemp", "MinimumTemp"),
+        decimals = 1
+      ) %>%
+      
+      # Format AvgRainfall and AvgRainydays as integers
+      fmt_number(
+        columns = c("Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov"),
+        rows = Metric %in% c("AvgRainfall", "AvgRainydays"),
+        decimals = 0
+      ) %>%
+      
+      # Apply color to Maximum Temp
+      data_color(
+        columns = c("Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov"),
+        rows = Metric == "MaximumTemp",
+        fn = scales::col_numeric(
+          palette = c("peachpuff", "orangered"),
+          domain = range(transposed_data %>% filter(Metric == "MaximumTemp") %>% select(-Metric), na.rm = TRUE)
+        )
+      ) %>%
+      
+      # Apply color to Minimum Temp
+      data_color(
+        columns = c("Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov"),
+        rows = Metric == "MinimumTemp",
+        fn = scales::col_numeric(
+          palette = c("cornflowerblue", "lightcyan"),
+          domain = range(transposed_data %>% filter(Metric == "MinimumTemp") %>% select(-Metric), na.rm = TRUE)
+        )
+      ) %>%
+      
+      # 숫자 데이터 가운데 정렬 적용
+      tab_style(
+        style = cell_text(align = "center"),  # 텍스트 가운데 정렬
+        locations = cells_body(
+          columns = c("Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov")
+        )
+      ) %>%
+      
+      # Apply text style
+      tab_style(
+        style = list(
+          cell_text(color = "black")
+        ),
+        locations = cells_body(
+          columns = c("Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov")
+        )
+      )
+  })
 }
 
-# Run the application
-shinyApp(ui, server, options=list(launch.browser=TRUE))
 
+#############
+# RUN SHINY #
+#############
+
+shinyApp(ui, server, options=list(launch.browser=TRUE))

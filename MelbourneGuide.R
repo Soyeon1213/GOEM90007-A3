@@ -24,6 +24,12 @@ transposed_data <- data %>%
 # USER INTERFACE #
 ##################
 
+scrollToTopJS <- "
+shinyjs.scrollToTop = function() {
+  window.scrollTo(0, 0);
+}
+"
+
 home_tab <- tabPanel(
   title = "Home",
   
@@ -299,9 +305,9 @@ footer <- tags$div(
 )
 
 ui <- navbarPage(
-  id = "navbar",  # 'id' 속성 추가
-  theme = shinytheme("paper"), # other themes: cerulean, cosmo, lumen, flatly
-  header=setUpTableauInShiny(),
+  id = "navbar",
+  theme = shinytheme("paper"),
+  header = setUpTableauInShiny(),
   title = "Melbourne City Guide",
   
   home_tab,
@@ -310,7 +316,11 @@ ui <- navbarPage(
   attraction_tab,
   accomodation_tab,
   
-  footer
+  footer = footer,
+  
+  # shinyjs를 사용하기 위한 태그 추가
+  useShinyjs(),
+  extendShinyjs(text = scrollToTopJS, functions = c("scrollToTop"))
 )
 
 
@@ -323,18 +333,22 @@ server <- function(input, output, session) {
   # Home 화면 탭 이동 버튼 처리
   observeEvent(input$btn1, {
     updateTabsetPanel(session, "navbar", selected = "Restaurants")
+    js$scrollToTop()  # 스크롤 상단 이동
   })
   
   observeEvent(input$btn2, {
     updateTabsetPanel(session, "navbar", selected = "Attractions")
+    js$scrollToTop()  # 스크롤 상단 이동
   })
   
   observeEvent(input$btn3, {
     updateTabsetPanel(session, "navbar", selected = "Transportation")
+    js$scrollToTop()  # 스크롤 상단 이동
   })
   
   observeEvent(input$btn4, {
     updateTabsetPanel(session, "navbar", selected = "Accomodation")
+    js$scrollToTop()  # 스크롤 상단 이동
   })
   
   output$melbourne_intro <- renderText({

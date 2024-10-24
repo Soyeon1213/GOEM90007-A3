@@ -7,6 +7,12 @@ library(dplyr)
 library(tidyr)
 library(bslib)
 library(highcharter)
+library(sf)
+if(!require(fontawesome)) install.packages("fontawesome")
+if(!require(stringr))install.packages("stringr")
+if(!require(shinyWidgets)) install.packages("shinyWidgets")
+if(!require(leaflet())) install.packages("leaflet")
+
 
 source('tableau-in-shiny-v1.2.R')
 
@@ -31,10 +37,10 @@ skybus_data <- read_csv("data/skybus_stop.csv")
 citytram_data <- read_csv("data/city_tram.csv")
 
 # Overview of Tram 
-tram_length_data <- read_csv("tram_length.csv")
+tram_length_data <- read_csv("data/tram_length.csv")
 
 # Tourist data
-tourist_data <- read_csv("australia_tourist.csv")
+tourist_data <- read_csv("data/australia_tourist.csv")
 
 # Convert the data from wide to long format
 tourist_data_long <- tourist_data %>%

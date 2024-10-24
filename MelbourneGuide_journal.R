@@ -984,9 +984,21 @@ server <- function(input, output, session) {
       select(city, length, country) %>%
       arrange(desc(length))  # 길이를 기준으로 내림차순 정렬
     
+    # 각 나라별 색상을 지정
+    country_colors <- c(
+      "Australia" = "#CFBAF0",
+      "Russia" = "#90DBF4",
+      "Germany" = "#F1C0E8",
+      "Italy" = "#FDE4CF",
+      "Poland" = "#B9FBC0",
+      "Austria" = "#98F5E1",
+      "Hungary" = "#FFCFD2",
+      "US" = "#FBF8CC"
+    )
+    
     # 데이터 리스트 변환
     data_list <- purrr::pmap(list(data_prepared$city, data_prepared$length, data_prepared$country), function(city, length, country) {
-      list(name = city, y = length, country = country)
+      list(name = city, y = length, country = country, color = country_colors[[country]])
     })
     
     # highchart 객체 생성

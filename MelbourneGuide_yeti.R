@@ -73,6 +73,12 @@ touristic_choiceVec <- c("All Touristic Stops", "Visitor Shuttle", "SkyBus", "Ci
 tram_numbers <- sort(unique(tram_data$routeussp))
 train_lines <- sort(unique(train_data$routeussp))
 
+
+################## Restaurant Data load ##################
+restaurant_data1 <- read_csv("data/new_restaurant_data.csv")
+restaurant_data2 <- read_csv("data/melbourne_restaurant_reviews.csv")
+restaurant_data <- left_join(restaurant_data1, restaurant_data2, by = c("Trading name" = "name"))
+
 ##################
 # USER INTERFACE #
 ##################
@@ -424,12 +430,18 @@ restaurant_tab <- nav_panel(
     )
   ),
   
+  # 클릭된 레스토랑 정보 테이블 섹션 (위쪽에 타이틀 추가)
+  div(
+    h3("Selected Restaurant Information", style = "text-align: center; font-weight: bold; margin-bottom: 20px;"),
+    gt_output("restaurant_info")
+  ),
+  
   # 제목 및 설명 추가 (레스토랑 정보 위에)
   h3("Top 5 Ranked Restaurants in Melbourne", style = "text-align: center; font-weight: bold; margin-top: 20px;"),
   p("These restaurants have received 5-star ratings from TripAdvisor.", style = "text-align: center; font-size: 1.1em; color: #888; margin-bottom: 40px;"),
   
   # 지도가 끝난 후 간격 추가
-  br(), br(),
+  br(), br(), br(), br(),
   
   # 레스토랑 정보 섹션 (지도 아래에 추가)
   div(
@@ -1042,6 +1054,90 @@ server <- function(input, output, session) {
                     colorByPoint = TRUE)  # 각 바의 색상 변경
   })
   
+  
+  ##################################### Restauran tab link click event #####################################
+  observeEvent(input$RestaurantMap_mark_selection_changed, {
+    
+    # 선택된 값이 없으면 빈 테이블 출력
+    if (length(input$RestaurantMap_mark_selection_changed) == 0) {
+      restaurant_table <- data.frame(Info = c("Name:", "Address:", "Rating:", "Price Level:"),
+                                     Value = c("", "", "", ""))
+      output$restaurant_info <- render_gt({
+        gt(restaurant_table) %>%
+          tab_options(
+            table.width = pct(60),  # 표의 너비 고정
+            table.font.size = 14,   # 폰트 크기 조정
+            data_row.padding = px(10),  # 행 패딩 조정
+            heading.align = "left",    # 헤더 정렬
+            column_labels.hidden = TRUE
+          ) %>%
+          cols_label(Info = "", Value = "")  # 첫 번째 행의 레이블 제거
+      })
+      return()  # 이 시점에서 종료
+    }
+    
+    selected_restaurant <- input$RestaurantMap_mark_selection_changed
+    selected_name <- selected_restaurant$`Trading name`
+    
+    # 선택된 레스토랑 데이터 필터링
+    selected_info <- restaurant_data %>%
+      filter(`Trading name` == selected_name) %>%
+      select(`Trading name`, `Business address`, rating, priceLevel, `Industry Category`)
+    
+    # 데이터를 표 형식으로 구성
+    if (nrow(selected_info) > 0) {
+      restaurant_table <- data.frame(
+        Info = c("Name:", "Address:", "Rating:", "Price Level:"),
+        Value = c(selected_info$`Trading name`, selected_info$`Business address`, selected_info$rating, selected_info$priceLevel),
+        Category = selected_info$`Industry Category`  # 카테고리 추가
+      )
+    } else {
+      restaurant_table <- data.frame(Info = c("Name:", "Address:", "Rating:", "Price Level:"),
+                                     Value = c("", "", "", ""),
+                                     Category = "")
+    }
+    
+    # 카테고리별로 전체 표의 색상을 변경하여 출력
+    output$restaurant_info <- render_gt({
+      gt(restaurant_table) %>%
+        tab_options(
+          table.width = pct(60),
+          table.font.size = 14,
+          data_row.padding = px(10),
+          heading.align = "left",
+          column_labels.hidden = TRUE
+        ) %>%
+        # 테이블 전체 배경색을 카테고리에 맞게 지정
+        tab_style(
+          style = list(cell_fill(color = case_when(
+            restaurant_table$Category[1] == "Cafes and Restaurants" ~ "mistyrose",
+            restaurant_table$Category[1] == "Pubs, Taverns and Bars" ~ "peachpuff",
+            restaurant_table$Category[1] == "Takeaway Food Services" ~ "thistle",
+            restaurant_table$Category[1] == "Bakery" ~ "lemonchiffon",
+            restaurant_table$Category[1] == "Convenience Store" ~ "honeydew",
+            restaurant_table$Category[1] == "Supermarket and Grocery Stores" ~ "azure",
+            restaurant_table$Category[1] == "Others" ~ "gainsboro"
+          ))),
+          locations = cells_body(columns = everything())
+        ) %>%
+        cols_hide(columns = "Category") %>%  # Category 컬럼을 숨김
+        cols_label(Info = "", Value = "")  # Info와 Value 레이블 제거
+    })
+  })
+  
+  # 기본적으로 빈 테이블을 출력
+  output$restaurant_info <- render_gt({
+    gt(data.frame(Info = c("Name:", "Address:", "Rating:", "Price Level:"),
+                  Value = c("", "", "", ""))) %>%
+      tab_options(
+        table.width = pct(60),
+        table.font.size = 14,
+        data_row.padding = px(10),
+        heading.align = "left",
+        column_labels.hidden = TRUE
+      ) %>%
+      cols_label(Info = "", Value = "")  # Info와 Value 레이블 제거
+  })
   
   ##################################### Observe link click event #####################################
   

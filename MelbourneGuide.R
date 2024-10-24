@@ -13,7 +13,6 @@ library(jsonlite)
 library(leaflet)
 library(geojsonio)
 library(sf)
-library(tidyr)
 
 source('tableau-in-shiny-v1.2.R')
 

@@ -437,7 +437,7 @@ transportation_tab <- nav_panel(
     ),
     hr(),
     
-    h5('Data Source: Melbourne Touristic Transport', 
+    h5('Data Source: Public Transport Victoria (PTV)', 
        style = "font-size:12px;")
   ),
 )
@@ -903,10 +903,10 @@ server <- function(input, output, session) {
                 align = "center",
                 verticalAlign = "top",
                 title = list(
-                  text = paste("Total (Country of stay/residence):",
+                  text = paste("Total :",
                                formatC(total_visitors(), format = "f", big.mark = ",", digits = 0)  # 모든 국가의 방문자 수 합산
                   )),
-                itemStyle = list(fontSize = "16px", fontWeight = "bold", color = "#000000"))
+                itemStyle = list(fontSize = "14px", fontWeight = "bold", color = "#000000"))
     
     # 크레딧 비활성화
     hc <- hc %>%

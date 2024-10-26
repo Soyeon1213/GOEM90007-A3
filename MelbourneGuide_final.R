@@ -188,7 +188,7 @@ home_tab <- nav_panel(
     fluidRow(
       column(8, offset = 2,
              titlePanel("Melbourne Monthly Temperature Range"),
-             )
+      )
     ),
     
     # Dumbbell 차트 영역
@@ -203,7 +203,7 @@ home_tab <- nav_panel(
     # Tableau 시각화 포함할 div
     fluidRow(
       column(8, offset = 2,
-            div(id = "tableauViz", style = "width: 100%; height: 600px;")
+             div(id = "tableauViz", style = "width: 100%; height: 600px;")
       )
     )
   ),
@@ -272,6 +272,13 @@ transportation_tab <- nav_panel(
     
     # 추가하려는 Tram System Length 차트
     h3("Tram System Length by City", style = "text-align: center;"),
+    
+    # 여러 개의 국가 선택이 가능한 드롭다운 메뉴
+    selectizeInput("country_filter", "Select Country", 
+                   choices = c("All", unique(tram_length_data$country)),
+                   selected = "All", multiple = TRUE,
+                   options = list(plugins = list("remove_button"))),  # 선택 항목 제거 버튼 추가
+    
     highchartOutput("tram_length_bar_chart", height = "600px"),  # 차트 추가
     hr(),
     
@@ -777,8 +784,8 @@ server <- function(input, output, session) {
     selected_month <- input$selected_month
     session$sendCustomMessage("updateMonthFilter", selected_month)
   })
-
-
+  
+  
   
   ##################################### Overview of Tourists number #####################################
   
@@ -1060,13 +1067,23 @@ server <- function(input, output, session) {
   })
   
   ##################################### Tram length chart #####################################  
+  
+  tram_length_data <- data.frame(
+    rank = 1:10,
+    city = c("Melbourne", "St.Petersburg", "Berlin", "Moscow", "Milan", "Katowice", "Vienna", "Budapest", "Dallas", "Lodz"),
+    country = c("Australia", "Russia", "Germany", "Russia", "Italy", "Poland", "Austria", "Hungary", "US", "Poland"),
+    length = c(250, 205.5, 193, 182, 181.8, 178, 176.9, 174, 149.9, 145)
+  )
+  
   # Highchart 출력
   output$tram_length_bar_chart <- renderHighchart({
     
-    # 데이터 준비 (필요에 따라 데이터 정렬)
-    data_prepared <- tram_length_data %>%
-      select(city, length, country) %>%
-      arrange(desc(length))  # 길이를 기준으로 내림차순 정렬
+    # 선택된 국가 필터링 (All 선택 시 모든 국가 포함)
+    data_prepared <- if ("All" %in% input$country_filter || is.null(input$country_filter)) {
+      tram_length_data
+    } else {
+      tram_length_data %>% filter(country %in% input$country_filter)
+    }
     
     # 각 나라별 색상을 지정
     country_colors <- c(

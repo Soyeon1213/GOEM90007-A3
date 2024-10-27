@@ -40,7 +40,9 @@ This app integrates Tableau visualizations into R Shine to create an interactive
 4.2. Interactive Components
     - Tableau Map Integration: The app integrates Tableau workbooks directly into the Shiny application, enabling Tableau visualizations to respond to Shiny UI elements. Interactivity extends both ways—when users interact with Tableau visualizations, the Shiny interface updates in response.
     - Dynamic Data Tables: Selecting a restaurant or hotel displays detailed information below the map, including name, address, and ratings.
-    - Highcharter Visualizations: Provides visual representation of trends over time, such as tourist origins by year, allowing users to track changes dynamically.
+    - Highcharter Visualizations: Provides visual representation of trends over time, such as tourist origins by year, allowing users to track changes dynamically. Bar race chart(Top 10 countries of visitors) is optimised at the Mac and chrome interface. If using the window OS, it needs to be chaged below parameters with 6(duration), and 8(invalidateLater)
+      duration = 1.5  # animation time (#1199)
+      invalidateLater(1.2, session)  # update timer (#1281)
 
 5. Files and Directories
 app.R: Main file containing the Shiny app code, including UI and server components.
@@ -58,6 +60,8 @@ https://data.melbourne.vic.gov.au/explore/dataset/landmarks-and-places-of-intere
 https://business.vic.gov.au/__data/assets/pdf_file/0009/1865160/Melbournes-Top-Attractions-year-ending-December-2019.pdf
 https://www.australia.com
 https://localguidetomelbourne.com/tours
+https://rail.nridigital.com/future_rail_sep23/10_largest_tram_networks
+https://www.ptv.vic.gov.au/footer/data-and-reporting/datasets/
 
 7. License
 This project is licensed under the MIT License.

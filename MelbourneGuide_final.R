@@ -1,20 +1,19 @@
-# Load required libraries with individual install commands
-if (!require(shiny)) install.packages("shiny"); library(shiny)
-if (!require(shinythemes)) install.packages("shinythemes"); library(shinythemes)
-if (!require(shinyjs)) install.packages("shinyjs"); library(shinyjs)
-if (!require(readr)) install.packages("readr"); library(readr)
-if (!require(gt)) install.packages("gt"); library(gt)
-if (!require(dplyr)) install.packages("dplyr"); library(dplyr)
-if (!require(tidyr)) install.packages("tidyr"); library(tidyr)
-if (!require(bslib)) install.packages("bslib"); library(bslib)
-if (!require(highcharter)) install.packages("highcharter"); library(highcharter)
-if (!require(fontawesome)) install.packages("fontawesome"); library(fontawesome)
-if (!require(shinyWidgets)) install.packages("shinyWidgets"); library(shinyWidgets)
-if (!require(jsonlite)) install.packages("jsonlite"); library(jsonlite)
-if (!require(leaflet)) install.packages("leaflet"); library(leaflet)
-if (!require(geojsonio)) install.packages("geojsonio"); library(geojsonio)
-if (!require(stringr)) install.packages("stringr"); library(stringr)
-if (!require(sf)) install.packages("sf"); library(sf)
+library(shiny)
+library(shinythemes)
+library(shinyjs)
+library(readr)
+library(gt)
+library(dplyr)
+library(tidyr)
+library(bslib)
+library(highcharter)
+library(fontawesome)
+library(shinyWidgets)
+library(jsonlite)
+library(leaflet)
+library(geojsonio)
+library(sf)
+library(DT)
 
 source('tableau-in-shiny-v1.2.R')
 
@@ -25,15 +24,12 @@ source('tableau-in-shiny-v1.2.R')
 data <- read_csv("data/melbourne_weather.csv", show_col_types = FALSE)
 
 melbourne_weather <- data.frame(
-  Month = c("Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov"),
-  MaximumTemp = c(24.2, 25.9, 25.8, 23.9, 20.3, 16.7, 14.0, 13.4, 15.0, 20.5, 22.5, 24.0),
-  MinimumTemp = c(12.9, 14.3, 14.6, 13.2, 10.8, 8.6, 6.9, 6.0, 6.7, 10.3, 13.1, 15.3)
+  Season = c("Summer", "Autumn", "Winter", "Spring"),
+  MaximumTemp = c(25.3, 20.3, 14.1, 22.3),
+  MinimumTemp = c(13.9, 10.9, 6.5, 12.9)
 )
-################## Hotel Data load ##################
 
-airbnb_data <- read.csv("data/top-rated_rentals.csv")
-hotel_data <- read.csv("data/hotel.csv")
-
+monthly_visitor <- read.csv("data/short_visitor.csv")
 
 ################## Transportation Data load ##################
 tram_data <- read_csv("data/tram_stop.csv")
@@ -86,6 +82,20 @@ train_lines <- sort(unique(train_data$routeussp))
 restaurant_data1 <- read_csv("data/new_restaurant_data.csv")
 restaurant_data2 <- read_csv("data/melbourne_restaurant_reviews.csv")
 restaurant_data <- left_join(restaurant_data1, restaurant_data2, by = c("Trading name" = "name"))
+
+################## Attraction Data load ##################
+attraction_data <- read_csv("data/attraction_data.csv")
+
+# Prepare data by grouping and selecting top 2 sub_themes within each theme
+top_bubble_data <- attraction_data %>%
+  group_by(theme, sub_theme) %>%
+  summarize(count = n()) %>%
+  arrange(theme, desc(count)) %>%
+  mutate(label_rank = row_number())
+
+################## Hotel Data load ##################
+airbnb_data <- read.csv("data/top-rated_rentals.csv")
+hotel_data <- read.csv("data/hotel.csv")
 
 ##################
 # USER INTERFACE #
@@ -146,7 +156,7 @@ home_tab <- nav_panel(
              <h3>When to visit:</h3>
              <p>Despite having four distinct seasons, Melbourne's weather is known for being a bit unpredictable. Summers are generally warm and winters cold, but just ask a local and they’ll tell you that it’s not uncommon to experience all four seasons in a single day. So whenever you decide to visit, be sure to pack layers and carry an umbrella in your day bag.</p>
              <ul>
-               <li><strong>High season:</strong> Spring and summer (November to February)</li>
+               <li><strong>High season:</strong> Summer (December to February)</li>
                <li><strong>Low season:</strong> Winter (June to August)</li>
                <li><strong>Don’t miss:</strong> Melbourne’s world-class festivals and events.</li>
              </ul>
@@ -155,72 +165,11 @@ home_tab <- nav_panel(
     column(2)
   ),
   
-  ##### weather chart ####
-  fluidRow(
-    tags$head(
-      tags$script(src = "https://public.tableau.com/javascripts/api/tableau-2.8.0.min.js"),
-      tags$script(HTML("
-      var tableauViz;
-      function initTableau() {
-        var containerDiv = document.getElementById('tableauViz');
-        var url = 'https://public.tableau.com/views/Book2_17299442399530/Dashboard1?:language=en-US&publish=yes&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link';
-  
-        var options = {
-          hideTabs: true,
-          onFirstInteractive: function () {
-            console.log('Tableau Viz has loaded.');
-          }
-        };
-  
-        tableauViz = new tableau.Viz(containerDiv, url, options);
-      }
-
-      Shiny.addCustomMessageHandler('updateMonthFilter', function(month) {
-        if (tableauViz) {
-          tableauViz.getWorkbook().getActiveSheet().applyFilterAsync(
-            'Month Character',
-            month, 
-            tableau.FilterUpdateType.REPLACE
-          ).then(function() {
-            console.log('Filter applied: ' + month);
-          }).catch(function(err) {
-            console.error('Error applying filter:', err);
-          });
-        }
-      });
-    "))
-    ),
-    tags$body(onload = "initTableau()"),  
-    
-    fluidRow(
-      column(8, offset = 2,
-             titlePanel("Melbourne Monthly Temperature Range"),
-      )
-    ),
-    
-    # Dumbbell 차트 영역
-    fluidRow(
-      column(8, offset = 2,
-             div(class = "chart-container",
-                 highchartOutput("dumbbell_chart", width = "900px", height = "400px")  # 차트
-             )
-      )
-    ),
-    
-    # Tableau 시각화 포함할 div
-    fluidRow(
-      column(8, offset = 2,
-             div(id = "tableauViz", style = "width: 100%; height: 600px;")
-      )
-    )
-  ),
-  br(),
-  
   ##### Bar race chart #####
   fluidRow(
     column(8, offset =2, 
            div(class = "chart-container",
-               highchartOutput("bar_race_chart", width = "900px", height = "600px"),  # 차트
+               highchartOutput("bar_race_chart", width = "1000px", height = "600px"),  # 차트
                actionButton("play_pause_button", label = icon("play"), class = "btn-lg")  # 버튼에 아이콘 추가
            )
     )
@@ -238,7 +187,133 @@ home_tab <- nav_panel(
   ),
   
   br(), br(),
-  
+  ##### weather chart ####
+  fluidRow(
+    tags$head(
+      tags$script(src = "https://public.tableau.com/javascripts/api/tableau-2.8.0.min.js"),
+      tags$script(HTML("
+      var tableauViz;
+      var highlightedSeason = null;
+
+      function initTableau() {
+        var containerDiv = document.getElementById('tableauViz');
+        var url = 'https://public.tableau.com/views/Book2_17299577480200/Sheet1?:language=ko-KR&publish=yes&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link';
+
+        var options = {
+          hideTabs: true,
+          onFirstInteractive: function () {
+            console.log('Tableau Viz has loaded.');
+            setupSelectionHandler();
+          }
+        };
+
+        tableauViz = new tableau.Viz(containerDiv, url, options);
+      }
+      
+      
+      function setupSelectionHandler() {
+        if (tableauViz) {
+          console.log('Setting up event listener for marks selection on sheet');
+          tableauViz.addEventListener(tableau.TableauEventName.MARKS_SELECTION, onSelection);
+        }else {
+          console.log('No active sheet found');
+        }
+      }
+
+      function onSelection(event) {
+        console.log('onSelection function called');
+        event.getMarksAsync().then(function(marks) {
+          if (marks.length > 0) {
+            var selectedMonth = marks[0].getPairs().find(function(pair) {
+              return pair.fieldName === 'Month Character';
+            }).formattedValue;
+      
+            console.log('Selected month: ', selectedMonth);
+            Shiny.setInputValue('tableau_month', selectedMonth, {priority: 'event'});
+          } else {
+            console.log('No marks selected'); // 선택된 항목이 없는 경우
+            Shiny.setInputValue('tableau_month', 'none', {priority: 'event'});
+          }
+        }).catch(function(error) {
+          console.error('Error retrieving selected marks:', error);
+        });
+      }
+
+      Shiny.addCustomMessageHandler('updateSeasonFilter', function(season) {
+        if (tableauViz) {
+          var seasonMonths = {
+              'Summer': ['Dec', 'Jan', 'Feb'],
+              'Autumn': ['Mar', 'Apr', 'May'],
+              'Winter': ['Jun', 'Jul', 'Aug'],
+              'Spring': ['Sep', 'Oct', 'Nov']
+          };
+
+          var months = seasonMonths[season] || [];
+          
+          if (highlightedSeason === season) {
+            tableauViz.getWorkbook().getActiveSheet().clearFilterAsync('Month Character')
+              .then(function() {
+                console.log('Filter cleared');
+                highlightedSeason = null;
+                Shiny.setInputValue('selected_season', 'none', {priority: 'event'});
+              }).catch(function(err) {
+                console.error('Error clearing filter:', err);
+              });
+          } else {
+            tableauViz.getWorkbook().getActiveSheet().applyFilterAsync(
+              'Month Character',
+              months,
+              tableau.FilterUpdateType.REPLACE
+            ).then(function() {
+                console.log('Filter applied for season:', season);
+                highlightedSeason = season;
+            }).catch(function(err) {
+                console.error('Error applying filter:', err);
+            });
+          }
+        }
+      });
+    "))
+    ),
+    tags$body(onload = "initTableau()"),
+    
+    fluidRow(
+      column(8, offset = 2,
+             titlePanel("Melbourne Seasonal Temperature Range")
+      )
+    ),
+    
+    fluidRow(
+      column(8, offset = 2,
+             div(class = "chart-container",
+                 highchartOutput("dumbbell_chart", width = "900px", height = "400px")
+             )
+      )
+    ),
+    
+    fluidRow(
+      column(8, offset = 2,
+             h2(textOutput("seasonTitle"), style = "margin-top: 20px;")
+      )
+    ),
+    
+    fluidRow(
+      column(8, offset = 2,
+             div(id = "tableauViz", style = "width: 100%; height = 600px;")
+      )
+    ),
+    
+    fluidRow(
+      column(8, offset = 2,
+             highchartOutput("visitor_trend", height = "400px")
+      )
+    ),
+    
+    br()
+    
+  ),
+
+  ##### Tab buttons #####
   fluidRow(
     column(3,
            actionButton("btn1", "Transportation", class = "btn-primary", style = "width: 100%;")
@@ -250,7 +325,7 @@ home_tab <- nav_panel(
            actionButton("btn3", "Attractions", class = "btn-primary", style = "width: 100%;")
     ),
     column(3,
-           actionButton("btn4", "Accomodation", class = "btn-primary", style = "width: 100%;")
+           actionButton("btn4", "Accommodation", class = "btn-primary", style = "width: 100%;")
     )
   ),
   
@@ -457,11 +532,13 @@ transportation_tab <- nav_panel(
 )
 
 ###### Restaurant tab UI ######  
+
 restaurant_tab <- nav_panel(
   title = "Restaurants",
   
   # 제목과 스타일링 추가
-  h2("Restaurants in Melbourne", style = "text-align: center; font-size: 2.5em; font-weight: bold; margin-bottom: 20px;"),
+  h2("Restaurants in Melbourne", 
+     style = "text-align: center; font-size: 2.5em; font-weight: bold; margin-bottom: 20px;"),
   
   # 소개 문구 추가
   p(
@@ -470,12 +547,25 @@ restaurant_tab <- nav_panel(
   ),
   
   p(
-    "As one of the world’s most diverse cities, Melbourne offers an endless variety of international cuisines. ",
-    "Here, you’ll experience flavors from every corner of the globe, reflecting the city’s rich immigrant history.",
-    "Melbourne is truly a 'city of gastronomy', home to world-renowned food festivals and some of the finest restaurants.",
-    "No matter what you’re craving, this city is sure to satisfy any taste bud.",
-    style = "text-align: justify; font-size: 1.3em; color: #777; line-height: 1.7; margin-bottom: 30px;"
+    "As one of the world’s most diverse cities, Melbourne offers an endless variety of international cuisines.",
+    style = "text-align: center; font-size: 1.3em; color: #777; line-height: 1.7;"
   ),
+  
+  p(
+    "Here, you’ll experience flavors from every corner of the globe, reflecting the city’s rich immigrant history.",
+    style = "text-align: center; font-size: 1.3em; color: #777; line-height: 1.7;"
+  ),
+  
+  p(
+    "Melbourne is truly a 'city of gastronomy', home to world-renowned food festivals and some of the finest restaurants.",
+    style = "text-align: center; font-size: 1.3em; color: #777; line-height: 1.7;"
+  ),
+  
+  p(
+    "No matter what you’re craving, this city is sure to satisfy any taste bud.",
+    style = "text-align: center; font-size: 1.3em; color: #777; line-height: 1.7;"
+  ),
+  
   
   p(
     "Ready to embark on a food journey? Explore the map below to discover the best places to eat in Melbourne!",
@@ -496,61 +586,78 @@ restaurant_tab <- nav_panel(
   
   # 클릭된 레스토랑 정보 테이블 섹션 (위쪽에 타이틀 추가)
   div(
-    h3("Selected Restaurant Information", style = "text-align: center; font-weight: bold; margin-bottom: 20px;"),
+    h3("Selected Restaurant Information", 
+       style = "text-align: center; font-weight: bold; margin-bottom: 20px;"),  # 간격 늘림
     gt_output("restaurant_info")
   ),
   
-  # 제목 및 설명 추가 (레스토랑 정보 위에)
-  h3("Top 5 Ranked Restaurants in Melbourne", style = "text-align: center; font-weight: bold; margin-top: 20px;"),
-  p("These restaurants have received 5-star ratings from TripAdvisor.", style = "text-align: center; font-size: 1.1em; color: #888; margin-bottom: 40px;"),
-  
   # 지도가 끝난 후 간격 추가
-  br(), br(), br(), br(),
+  br(), br(), 
+  
+  # 제목 및 설명 추가 (레스토랑 정보 위에)
+  h3("Top 5 Ranked Restaurants in Melbourne", 
+     style = "text-align: center; font-weight: bold; margin-top: 20px; margin-bottom: 10px;"),  # 간격 줄임
+  p("These restaurants have received 5-star ratings from TripAdvisor.", 
+    style = "text-align: center; font-size: 1.1em; color: #888; margin-bottom: 20px;"),  # 간격 줄임
+  
   
   # 레스토랑 정보 섹션 (지도 아래에 추가)
   div(
-    style = "padding-top: 50px;",  # 지도와 레스토랑 사이에 간격 추가
+    style = "padding-top: 20px;",  # 지도와 레스토랑 사이 간격 줄임
     fluidRow(
       # 레스토랑 1
       column(4, align = "center",
-             img(src = "ginger_olive.jpg", height = "150px", style = "margin-bottom: 15px;"),
-             h4("Ginger Olive Restaurant and Grill"),
-             p("U 2 38 Manchester Lane, Melbourne, Victoria 3000"),
-             a("Website Link", href = "https://gingerolive.com.au/", target = "_blank")
+             div(style = "box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2); border-radius: 10px; padding: 20px; margin-bottom: 20px; min-height: 300px;",  # 고정된 최소 높이 추가
+                 img(src = "ginger_olive.jpg", height = "150px", style = "border-radius: 10px; margin-bottom: 15px;"),
+                 h4("Ginger Olive Restaurant and Grill", style = "font-size: 1.5em; font-weight: bold; color: #333;"),
+                 p("U 2 38 Manchester Lane, Melbourne", style = "color: #777; font-size: 1.2em;"),
+                 a("Website Link", href = "https://gingerolive.com.au/", target = "_blank", style = "color: #0066cc; font-weight: bold;")
+             )
       ),
       # 레스토랑 2
       column(4, align = "center",
-             img(src = "hardware_club.jpg", height = "150px", style = "margin-bottom: 15px;"),
-             h4("The Hardware Club"),
-             p("43 Hardware Lane, Melbourne, Victoria 3000"),
-             a("Website Link", href = "https://www.thehardwareclub.com/", target = "_blank")
+             div(style = "box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2); border-radius: 10px; padding: 20px; margin-bottom: 20px; min-height: 300px;",  # 고정된 최소 높이 추가
+                 img(src = "hardware_club.jpg", height = "150px", style = "border-radius: 10px; margin-bottom: 15px;"),
+                 h4("The Hardware Club", style = "font-size: 1.5em; font-weight: bold; color: #333;"),
+                 p("43 Hardware Lane, Melbourne", style = "color: #777; font-size: 1.2em;"),
+                 a("Website Link", href = "https://www.thehardwareclub.com/", target = "_blank", style = "color: #0066cc; font-weight: bold;")
+             )
       ),
       # 레스토랑 3
-      column(4,              align = "center",
-             img(src = "ten_square.jpg", height = "150px", style = "margin-bottom: 15px;"),
-             h4("Ten Square Café"),
-             p("120 Hardware St, Melbourne, Victoria 3000"),
-             a("Website Link", href = "https://www.tensquarecafe.com.au/", target = "_blank")
+      column(4, align = "center",
+             div(style = "box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2); border-radius: 10px; padding: 20px; margin-bottom: 20px; min-height: 300px;",  # 고정된 최소 높이 추가
+                 img(src = "ten_square.jpg", height = "150px", style = "border-radius: 10px; margin-bottom: 15px;"),
+                 h4("Ten Square Café", style = "font-size: 1.5em; font-weight: bold; color: #333;"),
+                 p("120 Hardware St, Melbourne", style = "color: #777; font-size: 1.2em;"),
+                 a("Website Link", href = "https://www.tensquarecafe.com.au/", target = "_blank", style = "color: #0066cc; font-weight: bold;")
+             )
       )
     ),
+    
+    div(style = "margin-bottom: 20px;"), 
     
     fluidRow(
       # 레스토랑 4
       column(6, align = "center",
-             img(src = "caterinas.jpg", height = "150px", style = "margin-bottom: 15px;"),
-             h4("Caterina's Cucina E Bar"),
-             p("221 Queen St, Melbourne, Victoria 3000"),
-             a("Website Link", href = "https://www.caterinas.com.au/", target = "_blank")
+             div(style = "box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2); border-radius: 10px; padding: 20px; margin-bottom: 20px; min-height: 300px;",  # 고정된 최소 높이 추가
+                 img(src = "caterinas.jpg", height = "150px", style = "border-radius: 10px; margin-bottom: 15px;"),
+                 h4("Caterina's Cucina E Bar", style = "font-size: 1.5em; font-weight: bold; color: #333;"),
+                 p("221 Queen St, Melbourne", style = "color: #777; font-size: 1.2em;"),
+                 a("Website Link", href = "https://www.caterinas.com.au/", target = "_blank", style = "color: #0066cc; font-weight: bold;")
+             )
       ),
       # 레스토랑 5
       column(6, align = "center",
-             img(src = "tokui_sushi.jpg", height = "150px", style = "margin-bottom: 15px;"),
-             h4("Tokui Sushi"),
-             p("260 Lonsdale St, Melbourne, Victoria 3000"),
-             a("Google Link", href = "https://g.co/kgs/fWawkKC", target = "_blank")
+             div(style = "box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2); border-radius: 10px; padding: 20px; margin-bottom: 20px; min-height: 300px;",  # 고정된 최소 높이 추가
+                 img(src = "tokui_sushi.jpg", height = "150px", style = "border-radius: 10px; margin-bottom: 15px;"),
+                 h4("Tokui Sushi", style = "font-size: 1.5em; font-weight: bold; color: #333;"),
+                 p("260 Lonsdale St, Melbourne", style = "color: #777; font-size: 1.2em;"),
+                 a("Google Link", href = "https://g.co/kgs/fWawkKC", target = "_blank", style = "color: #0066cc; font-weight: bold;")
+             )
       )
     )
   )
+  
 )
 
 ###### Attraction tab UI ######  
@@ -571,18 +678,20 @@ attraction_tab <- nav_panel(
       height = "600px"
     )
   ),
+  br(),br(),
   
-  h3("Top 10 Most Popular Attractions in Melbourne",
-     style = "text-align: center; margin-top: 30px; margin-bottom: 20px;"),
-  
-  div(
-    style = "padding-bottom: 50px;",  # Add bottom padding for better spacing
-    tableauPublicViz(
-      id = "TopAttractionChart",
-      url = "https://public.tableau.com/shared/CR99P4C96?:display_count=n&:origin=viz_share_link",
-      width = "100%", 
-      height = "700px"
+  fluidRow(
+    # 여러 개의 국가 선택이 가능한 드롭다운 메뉴
+    selectizeInput("theme_filter", "Select Theme", 
+                   choices = c("All", unique(attraction_data$theme)),
+                   selected = "All", multiple = TRUE,
+                   options = list(plugins = list("remove_button"))),  # 선택 항목 제거 버튼 추가
+    column(8, offset = 1,
+           div(class = "chart-container",
+               highchartOutput("theme_packedbubble",width = "900px", height = "600px")  # 차트
+           )
     )
+    
   ),
   
   tags$div(
@@ -623,13 +732,13 @@ attraction_tab <- nav_panel(
   )
 )
 
-###### Accomodation tab UI ######  
-accomodation_tab <- tabPanel(
+###### Accommodation tab UI ######  
+Accommodation_tab <- tabPanel(
   title = "Accommodation",
   div(
     style = "text-align: center; width: 80%; margin: auto;",
     h2("Welcome to Your Melbourne Stay Guide", style = "text-align: center; margin-bottom: 30px;"),
-  
+    
     # Brief introduction to the accommodation section
     p("Explore Melbourne’s best stays! Whether you’re looking for a cozy Airbnb or a luxurious hotel experience, we’ve gathered the top recommendations across the city’s most vibrant neighborhoods. 
       Use our interactive map and data insights to find your ideal place to stay, discover nearby attractions, and compare amenities to make the most of your visit to Melbourne.",
@@ -641,7 +750,7 @@ accomodation_tab <- tabPanel(
     style = "text-align: center; width: 100%; margin-bottom: 50px;",
     # Airbnb Section
     h3("Airbnb Stays in Melbourne", style = "text-align: center; margin-bottom: 20px;"),
-  
+    
     div(
       style = "display: inline-block; width: 80%; height: 600px; overflow: hidden; margin-bottom: 30px;",
       h4("Discover Melbourne’s Best Airbnb Stays", style = "margin-bottom: 15px;"),
@@ -663,26 +772,26 @@ accomodation_tab <- tabPanel(
         style = "font-size: 1.2em;text-align: center; margin-bottom: 30px;"),
       
     ),
-
+    
     # Create a fluid row for the cards
     
     fluidRow(
       lapply(1:nrow(airbnb_data), function(i) {
         column(3,  # Each card takes up 3 columns (4 cards in a row)
-              div(class = "card",
-                  style = "margin: 1px; padding: 1px; height: 500px; display: flex; flex-direction: column; border: none;",
-                  h4(airbnb_data$title[i], style = "text-align: center; margin-bottom: 10px;"),
-                  img(src = airbnb_data$img_url[i], style = "width: 100%; height: 195px; object-fit: cover; border-radius: 5px;margin-top: 5px;"),
-                  
-                  h5(airbnb_data$name[i],style = "text-align: center; margin-top: 5px;"),
-                  p(paste("Score:", airbnb_data$score[i])),
-                  div(style = "flex-grow: 1; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4;", 
-                      airbnb_data$summary[i]),  # Allow summary to grow and fill space
-                  actionButton(paste0("book_now_", i), "Book Now", 
+               div(class = "card",
+                   style = "margin: 1px; padding: 1px; height: 500px; display: flex; flex-direction: column; border: none;",
+                   h4(airbnb_data$title[i], style = "text-align: center; margin-bottom: 10px;"),
+                   img(src = airbnb_data$img_url[i], style = "width: 100%; height: 195px; object-fit: cover; border-radius: 5px;margin-top: 5px;"),
+                   
+                   h5(airbnb_data$name[i],style = "text-align: center; margin-top: 5px;"),
+                   p(paste("Score:", airbnb_data$score[i])),
+                   div(style = "flex-grow: 1; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4;", 
+                       airbnb_data$summary[i]),  # Allow summary to grow and fill space
+                   actionButton(paste0("book_now_", i), "Book Now", 
                                 onclick = sprintf("window.open('%s', '_blank')", airbnb_data$book_url[i]), 
                                 style = "margin-top: 20px;")  # Add Book Now button
-                  
-              )
+                   
+               )
         )
       })
     ),
@@ -691,7 +800,7 @@ accomodation_tab <- tabPanel(
       style = "font-size: 1.2em;text-align: center; margin-top: 20px;"),
     p("Data Source: Airbnb", style = "text-align: center; font-size: 0.9em; margin-top: 10px;")
   ),
-
+  
   # Hotel Section
   tags$div(
     style = "text-align: center; width: 100%; margin-bottom: 50px;",  
@@ -706,8 +815,8 @@ accomodation_tab <- tabPanel(
         style = "width: 100%; max-width: 1000px; height: 600px; overflow: hidden;",
         h4("Explore Melbourne’s Hotel Map for Every Traveler’s Needs", style = "margin-bottom: 15px;"),
         p("Melbourne has a range of hotels to suit all preferences and budgets. From luxurious five-star stays to budget-friendly finds, use our interactive map to explore each hotel by class, location, and rating.",
-        style = "font-size: 1.2em; text-align: center; margin-bottom: 20px;"),
-      
+          style = "font-size: 1.2em; text-align: center; margin-bottom: 20px;"),
+        
         tags$div(
           style = "width: 80%; height: 100%;",
           tableauPublicViz("tableau_viz", "https://public.tableau.com/views/Airbnb_17295563103790/HotelsinMelbourne?:language=en-US&publish=yes&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link")
@@ -738,22 +847,21 @@ accomodation_tab <- tabPanel(
         h4("Find Your Perfect Stay Based on Nearby Attractions and Hotel Class", style = "margin-top: 20px;"),
         p("Are you a foodie, a sightseer, or both? This chart compares hotel class with the number of nearby restaurants and attractions, helping you find accommodations that meet your interests. 
         See which hotels offer the best combination of luxury, convenience, and local experiences.",
-        style = "font-size: 1.2em; margin-bottom: 20px;"),
+          style = "font-size: 1.2em; margin-bottom: 20px;"),
         p("Would you prefer a hotel with high-end restaurants nearby or one that’s close to major attractions? 
         Explore the balance of convenience and class to match your needs.",
-        style = "font-size: 1.2em; margin-bottom: 20px;"),
+          style = "font-size: 1.2em; margin-bottom: 20px;"),
         tags$div(
           style = "height: 400px; width: 80%; margin-left: 20%; overflow: auto;",  # Adjust height as needed
           tableauPublicViz("NearbyAttractions", 
-                          "https://public.tableau.com/views/Airbnb_17295563103790/Sheet8?:language=en-US&publish=yes&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link", 
-                          height = "100%", width = "100%")
+                           "https://public.tableau.com/views/Airbnb_17295563103790/Sheet8?:language=en-US&publish=yes&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link", 
+                           height = "100%", width = "100%")
         )
       ),
       
     )
   )
 )
-
 
 ###### UI ######
 ui <- page_navbar(
@@ -774,7 +882,7 @@ ui <- page_navbar(
   transportation_tab,
   restaurant_tab,
   attraction_tab,
-  accomodation_tab,
+  Accommodation_tab,
   
   
   # shinyjs를 사용하기 위한 태그 추가
@@ -807,7 +915,7 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$btn4, {
-    updateTabsetPanel(session, "navbar", selected = "Accomodation")
+    updateTabsetPanel(session, "navbar", selected = "Accommodation")
     js$scrollToTop()  # 스크롤 상단 이동
   })
   
@@ -822,12 +930,14 @@ server <- function(input, output, session) {
   })
   
   ###### Melbourne weather chart ######
+  selected_season <- reactiveVal("Year Overview")
+  
   # Dumbbell Chart 생성
   output$dumbbell_chart <- renderHighchart({
     highchart() %>%
       hc_chart(type = "bar") %>%
-      hc_title(text = "Melbourne Monthly Temperature Range") %>%
-      hc_xAxis(categories = melbourne_weather$Month, title = list(text = NULL)) %>%
+      hc_title(text = "Melbourne Seasonal Temperature Range") %>%
+      hc_xAxis(categories = melbourne_weather$Season, title = list(text = NULL)) %>%
       hc_yAxis(title = list(text = "Temperature (°C)")) %>%
       
       # 최소값 표시 (파란색 점)
@@ -841,8 +951,8 @@ server <- function(input, output, session) {
         point = list(
           events = list(
             click = JS("function() { 
-            Shiny.setInputValue('selected_month', this.series.chart.xAxis[0].categories[this.index]); 
-          }")
+              Shiny.setInputValue('selected_season', this.series.chart.xAxis[0].categories[this.index], {priority: 'event'}); 
+            }")
           )
         )
       ) %>%
@@ -858,8 +968,8 @@ server <- function(input, output, session) {
         point = list(
           events = list(
             click = JS("function() { 
-            Shiny.setInputValue('selected_month', this.series.chart.xAxis[0].categories[this.index]); 
-          }")
+              Shiny.setInputValue('selected_season', this.series.chart.xAxis[0].categories[this.index], {priority: 'event'}); 
+            }")
           )
         )
       ) %>%
@@ -876,22 +986,21 @@ server <- function(input, output, session) {
         point = list(
           events = list(
             click = JS("function() { 
-            Shiny.setInputValue('selected_month', this.series.chart.xAxis[0].categories[this.index]); 
-          }")
+              Shiny.setInputValue('selected_season', this.series.chart.xAxis[0].categories[this.index], {priority: 'event'}); 
+            }")
           )
         )
       ) %>%
       
-      # 툴팁 포맷을 통일하여 모든 시리즈에서 동일한 툴팁 형식 표시
       hc_tooltip(
         useHTML = TRUE,
         formatter = JS("
-        function() {
-          var minTemp = this.series.chart.series[0].data[this.point.index].y;
-          var maxTemp = this.series.chart.series[1].data[this.point.index].y;
-          return 'Temperature change: ' + minTemp + '°C ~ ' + maxTemp + '°C';
-        }
-      ")
+          function() {
+            var minTemp = this.series.chart.series[0].data[this.point.index].y;
+            var maxTemp = this.series.chart.series[1].data[this.point.index].y;
+            return 'Temperature change: ' + minTemp + '°C ~ ' + maxTemp + '°C';
+          }
+        ")
       ) %>%
       
       hc_plotOptions(
@@ -906,14 +1015,51 @@ server <- function(input, output, session) {
       )
   })
   
-  
-  # Dumbbell 차트에서 선택한 월에 따라 필터 작동 확인
-  observeEvent(input$selected_month, {
-    selected_month <- input$selected_month
-    session$sendCustomMessage("updateMonthFilter", selected_month)
+  observeEvent(input$selected_season, {
+    selected_season_val <- input$selected_season
+    
+    if (selected_season_val == "none") {
+      selected_season("Year Overview")
+    } else {
+      selected_season(selected_season_val)
+      session$sendCustomMessage("updateSeasonFilter", selected_season_val)
+    }
   })
   
+  output$seasonTitle <- renderText({
+    selected_season()
+  })
   
+  selected_month <- reactiveVal(NULL)
+  
+  observeEvent(input$tableau_month, {
+    if (input$tableau_month == "none") {
+      selected_month(NULL)  # 선택이 없을 때 NULL로 설정
+    } else {
+      selected_month(input$tableau_month)  # 선택된 월을 저장
+    }
+  })
+  
+  # 선택된 월에 따라 연도별 관광객 수 꺾은선 그래프 생성
+  output$visitor_trend <- renderHighchart({
+    req(selected_month()) # 선택된 월이 있어야 함
+    
+    if (is.null(selected_month())) return(NULL)
+    
+    # 선택된 월에 해당하는 데이터를 필터링
+    filtered_data <- monthly_visitor %>%
+      filter(month_character == selected_month())
+    
+    # 꺾은선 그래프 생성
+    highchart() %>%
+      hc_chart(type = "line") %>%
+      hc_title(text = paste("Yearly Visitor Trend for", selected_month())) %>%
+      hc_xAxis(categories = filtered_data$year, title = list(text = "Year")) %>%
+      hc_yAxis(title = list(text = "Short-term Visitors (in thousands)")) %>%
+      hc_add_series(name = "Visitors", data = filtered_data$short.term.visitor) %>%
+      hc_plotOptions(line = list(marker = list(enabled = TRUE, radius = 4))) %>%
+      hc_tooltip(pointFormat = "{point.y}k visitors")
+  })
   
   ##################################### Overview of Tourists number #####################################
   
@@ -1194,6 +1340,40 @@ server <- function(input, output, session) {
       )
   })
   
+  
+  ##################################### Touristic map #####################################
+  output$touristic_map <- renderLeaflet({
+    shuttle_data_mod <- shuttle_data %>%
+      mutate(routeussp = NA, color = "orchid") %>% 
+      select(stop_id, stop_name, latitude, longitude, routeussp, color)
+    
+    skybus_data_mod <- skybus_data %>%
+      mutate(color = "orchid") %>%
+      select(stop_id, stop_name, latitude, longitude, routeussp, color)
+    
+    citytram_data_mod <- citytram_data %>%
+      mutate(stop_id = row_number(), routeussp = NA, color="skyblue") %>%
+      select(stop_id, stop_name, latitude, longitude, routeussp, color)
+    
+    tour_filtered_data <- switch(input$touristic_stop_type,
+                                 "Visitor Shuttle" = shuttle_data_mod,
+                                 "SkyBus" = skybus_data_mod,
+                                 "City Circle Tram" = citytram_data_mod,
+                                 "All Touristic Stops" = bind_rows(shuttle_data_mod, skybus_data_mod, citytram_data_mod)
+    )
+    
+    leaflet() %>%
+      addProviderTiles(providers$CartoDB.Positron) %>%
+      setView(lng = 144.9631, lat = -37.8136, zoom = 15) %>%
+      addCircles(
+        data = tour_filtered_data,
+        lat = ~latitude, lng = ~longitude,
+        popup = ~paste("Stop Name: ", stop_name),
+        color = ~color,
+        radius = 50
+      )
+  })
+  
   ##################################### Tram length chart #####################################  
   
   tram_length_data <- data.frame(
@@ -1272,7 +1452,7 @@ server <- function(input, output, session) {
   })
   
   
-  ##################################### Restauran tab link click event #####################################
+  ##################################### Restaurant tab link click event #####################################
   observeEvent(input$RestaurantMap_mark_selection_changed, {
     
     # 선택된 값이 없으면 빈 테이블 출력
@@ -1356,6 +1536,67 @@ server <- function(input, output, session) {
       cols_label(Info = "", Value = "")  # Info와 Value 레이블 제거
   })
   
+  ##################################### Attraction tab bubble #####################################
+
+  
+  # Reactive data filtered by selected theme and top 2 sub-themes
+  filtered_data <- reactive({
+    data <- top_bubble_data
+    # input$theme_filter가 NULL이 아니고 "All"이 포함되어 있지 않은 경우에만 필터 적용
+    if (!is.null(input$theme_filter) && !("All" %in% input$theme_filter)) {
+      data <- data %>% filter(theme %in% input$theme_filter)
+    }
+    data
+  })
+  
+  # Packed Bubble 차트 렌더링
+  
+  output$theme_packedbubble <- renderHighchart({
+    hchart(
+      filtered_data() %>%
+        mutate(
+          name = as.list(sub_theme),
+          value = as.list(count),
+          group = as.list(theme)
+        ),
+      "packedbubble",
+      hcaes(
+        name = name,
+        value = value,
+        group = group
+      )
+    ) %>%
+      hc_title(text = "Melbourne Attractions by Theme and Sub-theme") %>%
+      hc_tooltip(
+        useHTML = TRUE,
+        pointFormat = "<b>{point.name}</b>: {point.value} attractions"
+      ) %>%
+      hc_plotOptions(
+        packedbubble = list(
+          minSize = "30%",
+          maxSize = "120%",
+          layoutAlgorithm = list(
+            gravitationalConstant = 0.05,
+            splitSeries = TRUE,
+            seriesInteraction = TRUE,
+            dragBetweenSeries = TRUE,
+            parentNodeLimit = TRUE
+          ),
+          dataLabels = list(
+            enabled = TRUE,
+            format = "{point.name}",
+            # 상위 2개 sub_theme에만 라벨 표시
+            filter = list(
+              property = "label_rank",
+              operator = "<=",
+              value = 2
+            ),
+            style = list(color = "black", textOutline = "none")
+          )
+        )
+      )
+  })
+  
   ##################################### Observe link click event #####################################
   
   observeEvent(input$tram_link, {
@@ -1386,7 +1627,8 @@ server <- function(input, output, session) {
   observeEvent(input$touristic_title, {
     updateRadioButtons(session, "touristic_stop_type", selected = "All Touristic Stops")
   })
-
+  
+  
   ######################### Accomodation #########################
   observeEvent(input$tableau_viz_mark_selection_changed, {
     selected_hotel <- input$tableau_viz_mark_selection_changed

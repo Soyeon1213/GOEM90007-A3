@@ -21,8 +21,7 @@ source('tableau-in-shiny-v1.2.R')
 #      DATA      #
 ##################
 
-data <- read_csv("data/melbourne_weather.csv", show_col_types = FALSE)
-
+################## Home Data load ##################
 melbourne_weather <- data.frame(
   Season = c("Summer", "Autumn", "Winter", "Spring"),
   MaximumTemp = c(25.3, 20.3, 14.1, 22.3),
@@ -30,6 +29,7 @@ melbourne_weather <- data.frame(
 )
 
 monthly_visitor <- read.csv("data/short_visitor.csv")
+
 
 ################## Transportation Data load ##################
 tram_data <- read_csv("data/tram_stop.csv")
@@ -53,10 +53,10 @@ tourist_data_long <- tourist_data %>%
 # Function to get data for a specific year
 get_data_for_year <- function(year) {
   tourist_data_long <- tourist_data %>%
-    filter(Year == year) %>%  # Year 필터 적용
+    filter(Year == year) %>%  # Year filter
     pivot_longer(cols = -Year, names_to = "Country", values_to = "Value") %>%  # 열 변환
-    arrange(desc(Value)) %>%  # Value 값으로 내림차순 정렬
-    head(10)  # 상위 10개 국가만 반환
+    arrange(desc(Value)) %>%
+    head(10)  # Top 10 nations
   return(tourist_data_long)
 }
 
@@ -83,6 +83,7 @@ restaurant_data1 <- read_csv("data/new_restaurant_data.csv")
 restaurant_data2 <- read_csv("data/melbourne_restaurant_reviews.csv")
 restaurant_data <- left_join(restaurant_data1, restaurant_data2, by = c("Trading name" = "name"))
 
+
 ################## Attraction Data load ##################
 attraction_data <- read_csv("data/attraction_data.csv")
 
@@ -93,9 +94,12 @@ top_bubble_data <- attraction_data %>%
   arrange(theme, desc(count)) %>%
   mutate(label_rank = row_number())
 
+
 ################## Hotel Data load ##################
 airbnb_data <- read.csv("data/top-rated_rentals.csv")
 hotel_data <- read.csv("data/hotel.csv")
+
+
 
 ##################
 # USER INTERFACE #
@@ -106,6 +110,7 @@ shinyjs.scrollToTop = function() {
   window.scrollTo(0, 0);
 }
 "
+
 ###### Home tab UI ######
 home_tab <- nav_panel(
   title = "Home",
@@ -141,25 +146,23 @@ home_tab <- nav_panel(
   
   fluidRow(
     column(2), 
-    column(8, align = "left", 
-           h2("Welcome"),
+    column(8, align = "center", 
+           h2("Melbourne", style = "font-size: 3em; font-weight: bold; color: midnightblue;"),
            HTML("
-             <p><strong>Melbourne is Australia's mecca for all things trendy and tasty. With exquisite dining, exhilarating sport, and abundant art experiences, there are plenty of brilliant things to do in Melbourne.</strong></p>
-             <p>A perfect blend of rich cultural history and new age trends is waiting for you in Melbourne. As the sun goes down, the city comes to life with a vibrant dining scene as well as events and exhibitions. Explore its bustling laneways, trendy neighbourhoods, and sophisticated foodie scene to get a taste of what Melbourne is all about.</p>
-             <h3>Getting to Melbourne</h3>
+             <p><strong>Melbourne is Australia's mecca for all things trendy and tasty
+             With exquisite dining, exhilarating sport, and abundant art experiences, there are plenty of brilliant things to do in Melbourne.</strong></p>
+             <p>A perfect blend of rich cultural history and new age trends is waiting for you in Melbourne.
+             As the sun goes down, the city comes to life with a vibrant dining scene as well as events and exhibitions.
+             Explore its bustling laneways, trendy neighbourhoods, and sophisticated foodie scene to get a taste of what Melbourne is all about.</p>
+             <br>
+             <h2 style='font-weight: bold;'>Getting to Melbourne</h2>
              <p>Getting to Melbourne is easy with flights arriving directly at two airports:</p>
              <ul>
-               <li>Melbourne Airport at Tullamarine (MEL) is 22km (14mi) from the city and services international and domestic arrivals.</li>
-               <li>Avalon Airport (AVV) is 55km (34mi) from the city and services international and domestic flights.</li>
+               <li>Melbourne Airport at Tullamarine (MEL) is 22km from the city and services international and domestic arrivals.</li>
+               <li>Avalon Airport (AVV) is 55km from the city and services international and domestic flights.</li>
              </ul>
              <p>Hire cars, taxis, rideshares, and a shuttle service are available from both airports. Getting around is just as easy as finding a great cup of coffee in Melbourne. The city offers clean, reliable, and affordable public transport services. There is even a free City Circle tram line with historical commentary.</p>
-             <h3>When to visit:</h3>
-             <p>Despite having four distinct seasons, Melbourne's weather is known for being a bit unpredictable. Summers are generally warm and winters cold, but just ask a local and they’ll tell you that it’s not uncommon to experience all four seasons in a single day. So whenever you decide to visit, be sure to pack layers and carry an umbrella in your day bag.</p>
-             <ul>
-               <li><strong>High season:</strong> Summer (December to February)</li>
-               <li><strong>Low season:</strong> Winter (June to August)</li>
-               <li><strong>Don’t miss:</strong> Melbourne’s world-class festivals and events.</li>
-             </ul>
+             <br>
            ")
     ),
     column(2)
@@ -167,17 +170,21 @@ home_tab <- nav_panel(
   
   ##### Bar race chart #####
   fluidRow(
-    column(8, offset =2, 
+    column(8, offset = 2, align = "center",
+           h2("Top Tourist Orgins Over Time", style = "font-weight: bold;"),
+    )
+  ),
+  
+  fluidRow(
+    column(8, offset =2,
            div(class = "chart-container",
-               highchartOutput("bar_race_chart", width = "1000px", height = "600px"),  # 차트
-               actionButton("play_pause_button", label = icon("play"), class = "btn-lg")  # 버튼에 아이콘 추가
+               highchartOutput("bar_race_chart", width = "1000px", height = "600px"),  
+               actionButton("play_pause_button", label = icon("play"), class = "btn-lg")  
            )
     )
   ),
   
-  br(),
-  
-  # 슬라이더 추가
+  # Slider for Bar race chart
   fluidRow(
     column(8, offset = 2,
            sliderInput("year_slider", "Select Year:",
@@ -187,6 +194,25 @@ home_tab <- nav_panel(
   ),
   
   br(), br(),
+  
+  fluidRow(
+    column(2), 
+    column(8, align = "center", 
+           HTML("
+             <h2 style='font-weight: bold;'>When to visit:</h2>
+             <p>Despite having four distinct seasons, Melbourne's weather is known for being a bit unpredictable. Summers are generally warm and winters cold, but just ask a local and they’ll tell you that it’s not uncommon to experience all four seasons in a single day. So whenever you decide to visit, be sure to pack layers and carry an umbrella in your day bag.</p>
+             <ul>
+               <li><strong>High season:</strong> Summer (December to February)</li>
+               <li><strong>Low season:</strong> Winter (June to August)</li>
+             </ul>
+           ")
+    )
+  ),
+  
+  br(), 
+  
+  
+  
   ##### weather chart ####
   fluidRow(
     tags$head(
@@ -231,7 +257,7 @@ home_tab <- nav_panel(
             console.log('Selected month: ', selectedMonth);
             Shiny.setInputValue('tableau_month', selectedMonth, {priority: 'event'});
           } else {
-            console.log('No marks selected'); // 선택된 항목이 없는 경우
+            console.log('No marks selected');
             Shiny.setInputValue('tableau_month', 'none', {priority: 'event'});
           }
         }).catch(function(error) {
@@ -277,9 +303,10 @@ home_tab <- nav_panel(
     ),
     tags$body(onload = "initTableau()"),
     
+    
     fluidRow(
-      column(8, offset = 2,
-             titlePanel("Melbourne Seasonal Temperature Range")
+      column(8, offset = 2, align = "center",
+             h2("Melbourne Seasonal Temperature Range", style = "font-weight: bold;"),
       )
     ),
     
@@ -291,14 +318,17 @@ home_tab <- nav_panel(
       )
     ),
     
-    fluidRow(
-      column(8, offset = 2,
-             h2(textOutput("seasonTitle"), style = "margin-top: 20px;")
-      )
-    ),
+    br(),
     
     fluidRow(
-      column(8, offset = 2,
+      column(8, offset = 2, align = "center",
+             h2(textOutput("seasonTitle"), style = "font-weight: bold;")
+      )
+    ),
+  
+    
+    fluidRow(
+      column(8, offset = 2, align = "center",
              div(id = "tableauViz", style = "width: 100%; height = 600px;")
       )
     ),
@@ -308,8 +338,6 @@ home_tab <- nav_panel(
              highchartOutput("visitor_trend", height = "400px")
       )
     ),
-    
-    br()
     
   ),
 
@@ -331,6 +359,7 @@ home_tab <- nav_panel(
   
   br(), br()
 )
+
 
 ###### Transportation tab UI ######
 transportation_tab <- nav_panel(
@@ -536,45 +565,36 @@ transportation_tab <- nav_panel(
 restaurant_tab <- nav_panel(
   title = "Restaurants",
   
-  # 제목과 스타일링 추가
   h2("Restaurants in Melbourne", 
      style = "text-align: center; font-size: 2.5em; font-weight: bold; margin-bottom: 20px;"),
   
-  # 소개 문구 추가
   p(
     "Welcome to Melbourne's culinary paradise, where a vibrant mix of cultures meets on the dining table!",
-    style = "text-align: center; font-size: 1.5em; font-weight: bold; color: #555; margin-bottom: 15px;"
+    style = "text-align: center; font-size: 1.4em; font-weight: bold;"
   ),
   
+  fluidRow(
+    column(2), 
+    column(8, align = "center", 
+           HTML("
+             <p>As one of the world’s most diverse cities, Melbourne offers an endless variety of international cuisines.
+             <br>Here, you’ll experience flavors from every corner of the globe, reflecting the city’s rich immigrant history.
+             <br>Melbourne is truly a 'city of gastronomy', home to world-renowned food festivals and some of the finest restaurants.
+             <br>No matter what you’re craving, this city is sure to satisfy any taste bud.
+             </p>
+           ")
+    )
+  ),
+  
+  br(),
+
   p(
-    "As one of the world’s most diverse cities, Melbourne offers an endless variety of international cuisines.",
-    style = "text-align: center; font-size: 1.3em; color: #777; line-height: 1.7;"
+    "Ready to embark on a food journey?<br>Explore the map below to discover the best places to eat in Melbourne!",
+    style = "text-align: center; font-size: 1.4em; font-weight: bold;"
   ),
   
-  p(
-    "Here, you’ll experience flavors from every corner of the globe, reflecting the city’s rich immigrant history.",
-    style = "text-align: center; font-size: 1.3em; color: #777; line-height: 1.7;"
-  ),
-  
-  p(
-    "Melbourne is truly a 'city of gastronomy', home to world-renowned food festivals and some of the finest restaurants.",
-    style = "text-align: center; font-size: 1.3em; color: #777; line-height: 1.7;"
-  ),
-  
-  p(
-    "No matter what you’re craving, this city is sure to satisfy any taste bud.",
-    style = "text-align: center; font-size: 1.3em; color: #777; line-height: 1.7;"
-  ),
-  
-  
-  p(
-    "Ready to embark on a food journey? Explore the map below to discover the best places to eat in Melbourne!",
-    style = "text-align: center; font-size: 1.4em; font-weight: bold; color: #555; margin-bottom: 30px;"
-  ),
-  
-  # 지도 섹션의 가운데 정렬 및 고정된 크기 설정
   div(
-    style = "text-align: center; width: 100%; margin-bottom: 50px;",  # 지도의 가운데 정렬
+    style = "text-align: center; width: 100%; margin-bottom: 50px;",
     div(
       style = "display: inline-block; width: 800px; height: 600px; overflow: hidden;",
       tableauPublicViz(
@@ -584,28 +604,25 @@ restaurant_tab <- nav_panel(
     )
   ),
   
-  # 클릭된 레스토랑 정보 테이블 섹션 (위쪽에 타이틀 추가)
+  # Information for selected restaurant
   div(
-    h3("Selected Restaurant Information", 
-       style = "text-align: center; font-weight: bold; margin-bottom: 20px;"),  # 간격 늘림
+    h2("Selected Restaurant Information", 
+       style = "text-align: center; font-weight: bold;"),
     gt_output("restaurant_info")
   ),
   
-  # 지도가 끝난 후 간격 추가
   br(), br(), 
   
-  # 제목 및 설명 추가 (레스토랑 정보 위에)
-  h3("Top 5 Ranked Restaurants in Melbourne", 
-     style = "text-align: center; font-weight: bold; margin-top: 20px; margin-bottom: 10px;"),  # 간격 줄임
+  h2("Top 5 Ranked Restaurants in Melbourne", 
+     style = "text-align: center; font-weight: bold;"),
   p("These restaurants have received 5-star ratings from TripAdvisor.", 
-    style = "text-align: center; font-size: 1.1em; color: #888; margin-bottom: 20px;"),  # 간격 줄임
+    style = "text-align: center;"),
   
   
-  # 레스토랑 정보 섹션 (지도 아래에 추가)
+  # Top 5 restaurant
   div(
-    style = "padding-top: 20px;",  # 지도와 레스토랑 사이 간격 줄임
     fluidRow(
-      # 레스토랑 1
+      # Restaurant 1
       column(4, align = "center",
              div(style = "box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2); border-radius: 10px; padding: 20px; margin-bottom: 20px; min-height: 300px;",  # 고정된 최소 높이 추가
                  img(src = "ginger_olive.jpg", height = "150px", style = "border-radius: 10px; margin-bottom: 15px;"),
@@ -614,7 +631,7 @@ restaurant_tab <- nav_panel(
                  a("Website Link", href = "https://gingerolive.com.au/", target = "_blank", style = "color: #0066cc; font-weight: bold;")
              )
       ),
-      # 레스토랑 2
+      # Restaurant 2
       column(4, align = "center",
              div(style = "box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2); border-radius: 10px; padding: 20px; margin-bottom: 20px; min-height: 300px;",  # 고정된 최소 높이 추가
                  img(src = "hardware_club.jpg", height = "150px", style = "border-radius: 10px; margin-bottom: 15px;"),
@@ -623,7 +640,7 @@ restaurant_tab <- nav_panel(
                  a("Website Link", href = "https://www.thehardwareclub.com/", target = "_blank", style = "color: #0066cc; font-weight: bold;")
              )
       ),
-      # 레스토랑 3
+      # Restaurant 3
       column(4, align = "center",
              div(style = "box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2); border-radius: 10px; padding: 20px; margin-bottom: 20px; min-height: 300px;",  # 고정된 최소 높이 추가
                  img(src = "ten_square.jpg", height = "150px", style = "border-radius: 10px; margin-bottom: 15px;"),
@@ -637,7 +654,7 @@ restaurant_tab <- nav_panel(
     div(style = "margin-bottom: 20px;"), 
     
     fluidRow(
-      # 레스토랑 4
+      # Restaurant 4
       column(6, align = "center",
              div(style = "box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2); border-radius: 10px; padding: 20px; margin-bottom: 20px; min-height: 300px;",  # 고정된 최소 높이 추가
                  img(src = "caterinas.jpg", height = "150px", style = "border-radius: 10px; margin-bottom: 15px;"),
@@ -646,7 +663,7 @@ restaurant_tab <- nav_panel(
                  a("Website Link", href = "https://www.caterinas.com.au/", target = "_blank", style = "color: #0066cc; font-weight: bold;")
              )
       ),
-      # 레스토랑 5
+      # Restaurant 5
       column(6, align = "center",
              div(style = "box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2); border-radius: 10px; padding: 20px; margin-bottom: 20px; min-height: 300px;",  # 고정된 최소 높이 추가
                  img(src = "tokui_sushi.jpg", height = "150px", style = "border-radius: 10px; margin-bottom: 15px;"),
@@ -868,11 +885,9 @@ ui <- page_navbar(
   id = "navbar",
   theme = bs_theme(
     bootswatch = "yeti"
-    #navbar_bg = "#d3d3d3"
   ),
   header = tagList(
     setUpTableauInShiny(),
-    # shinyjs를 사용하기 위한 태그 추가
     useShinyjs(),
     extendShinyjs(text = scrollToTopJS, functions = c("scrollToTop"))
   ),
@@ -884,10 +899,6 @@ ui <- page_navbar(
   attraction_tab,
   Accommodation_tab,
   
-  
-  # shinyjs를 사용하기 위한 태그 추가
-  #useShinyjs(),
-  #extendShinyjs(text = scrollToTopJS, functions = c("scrollToTop"))
 )
 
 
@@ -898,49 +909,45 @@ ui <- page_navbar(
 
 server <- function(input, output, session) {
   
-  # Home 화면 탭 이동 버튼 처리
+  # Button for moving tabs
   observeEvent(input$btn1, {
     updateTabsetPanel(session, "navbar", selected = "Transportation")
-    js$scrollToTop()  # 스크롤 상단 이동
+    js$scrollToTop() 
   })
   
   observeEvent(input$btn2, {
     updateTabsetPanel(session, "navbar", selected = "Restaurants")
-    js$scrollToTop()  # 스크롤 상단 이동
+    js$scrollToTop()
   })
   
   observeEvent(input$btn3, {
     updateTabsetPanel(session, "navbar", selected = "Attractions")
-    js$scrollToTop()  # 스크롤 상단 이동
+    js$scrollToTop() 
   })
   
   observeEvent(input$btn4, {
     updateTabsetPanel(session, "navbar", selected = "Accommodation")
-    js$scrollToTop()  # 스크롤 상단 이동
+    js$scrollToTop() 
   })
   
-  output$melbourne_intro <- renderText({
-    # Assuming your text file is in the www folder
-    readLines("data/melbourne_intro.txt")
+  
+  observeEvent(input$weather_title_click, {  
+    shinyjs::show("visitor_chart_container")  
   })
   
-  # Home 화면 탭 이동 버튼 처리
-  observeEvent(input$weather_title_click, {  # weather_table 클릭 이벤트 감지
-    shinyjs::show("visitor_chart_container")  # 차트를 표시
-  })
   
   ###### Melbourne weather chart ######
   selected_season <- reactiveVal("Year Overview")
   
-  # Dumbbell Chart 생성
+  # Dumbbell Chart 
   output$dumbbell_chart <- renderHighchart({
     highchart() %>%
       hc_chart(type = "bar") %>%
-      hc_title(text = "Melbourne Seasonal Temperature Range") %>%
+      #hc_title(text = "Melbourne Seasonal Temperature Range") %>%
       hc_xAxis(categories = melbourne_weather$Season, title = list(text = NULL)) %>%
       hc_yAxis(title = list(text = "Temperature (°C)")) %>%
       
-      # 최소값 표시 (파란색 점)
+      # min value
       hc_add_series(
         type = "scatter",
         data = melbourne_weather$MinimumTemp,
@@ -957,7 +964,7 @@ server <- function(input, output, session) {
         )
       ) %>%
       
-      # 최대값 표시 (빨간색 점)
+      # max value
       hc_add_series(
         type = "scatter",
         data = melbourne_weather$MaximumTemp,
@@ -974,7 +981,7 @@ server <- function(input, output, session) {
         )
       ) %>%
       
-      # 덤벨의 연결선 추가
+      # line for dumbbell
       hc_add_series(
         type = "errorbar",
         data = purrr::map2(melbourne_weather$MinimumTemp, melbourne_weather$MaximumTemp, 
@@ -1034,23 +1041,24 @@ server <- function(input, output, session) {
   
   observeEvent(input$tableau_month, {
     if (input$tableau_month == "none") {
-      selected_month(NULL)  # 선택이 없을 때 NULL로 설정
+      selected_month(NULL)  # nothing selected, save as none
     } else {
-      selected_month(input$tableau_month)  # 선택된 월을 저장
+      selected_month(input$tableau_month)
     }
   })
   
-  # 선택된 월에 따라 연도별 관광객 수 꺾은선 그래프 생성
+  # display line chart per selected month
   output$visitor_trend <- renderHighchart({
-    req(selected_month()) # 선택된 월이 있어야 함
+    req(selected_month())
     
+    # if nothing selected, don't display
     if (is.null(selected_month())) return(NULL)
     
-    # 선택된 월에 해당하는 데이터를 필터링
+    # filter the data per selected month
     filtered_data <- monthly_visitor %>%
       filter(month_character == selected_month())
     
-    # 꺾은선 그래프 생성
+    # make line chart
     highchart() %>%
       hc_chart(type = "line") %>%
       hc_title(text = paste("Yearly Visitor Trend for", selected_month())) %>%
@@ -1060,6 +1068,7 @@ server <- function(input, output, session) {
       hc_plotOptions(line = list(marker = list(enabled = TRUE, radius = 4))) %>%
       hc_tooltip(pointFormat = "{point.y}k visitors")
   })
+  
   
   ##################################### Overview of Tourists number #####################################
   
@@ -1132,10 +1141,10 @@ server <- function(input, output, session) {
       hc_chart(type = "bar") %>%
       
       # 차트 제목과 서브 타이틀
-      hc_title(text = "Top Tourist Origins Over Time", align = "left",
-               style = list(fontSize = "24px", color = "#333333")) %>%
-      hc_subtitle(text = "Source: Australian Bureau of Statistics", align = "left",
-                  style = list(fontSize = "14px", color = "#666666")) %>%
+      # hc_title(text = "Top Tourist Origins Over Time", align = "left",
+      #         style = list(fontSize = "24px", color = "#333333")) %>%
+      #hc_subtitle(text = "Source: Australian Bureau of Statistics", align = "left",
+      #            style = list(fontSize = "14px", color = "#666666")) %>%
       
       # X축 설정 (Country 카테고리)
       hc_xAxis(categories = data_prepared()$Country,

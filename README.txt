@@ -19,11 +19,16 @@ This app integrates Tableau visualizations into R Shine to create an interactive
 - R to Tableau and Tableau to R Interactivity: Communication between Shiny and Tableau for real-time data updates.
 - Top Recommendations: Key sections feature “Top Ranked” items for quick access to the highest-rated options.
 
-3. Installation and Setup
-Prerequisites: R, RStudio (optional but recommended)
-Required R Packages:
-shiny, shinythemes, shinyjs, readr, gt, dplyr, tidyr, bslib, highcharter, fontawesome, shinyWidgets, jsonlite, leaflet, geojsonio, sf, DT
-Tableau Public Account (for using embedded Tableau visualizations)
+3. Launch
+3.1. Prerequisites
+    - R, RStudio
+    - Required R Packages: shiny, shinythemes, shinyjs, readr, gt, dplyr, tidyr, bslib, highcharter, fontawesome, shinyWidgets, jsonlite, leaflet, geojsonio, sf, DT
+    - Tableau Public Account (for using embedded Tableau visualizations)
+3.2. Setup
+    1. Open the Project: Locate and open the MelbourneGuide_final.R file in RStudio. This file contains the main application code.
+    2. Set Working Directory: Set your working directory to the folder containing MelbourneGuide_final.R and the other necessary folders (data, tableau, www) so that all files are correctly referenced.
+    3. Run the Application: Click on the Run App button in the upper right corner of the MelbourneGuide_final.R script editor.
+    4. View in Browser: The app will open automatically in your default web browser, displaying the interactive Melbourne City Guide. From here, you can navigate between tabs, interact with the Tableau visualizations, and explore the provided data on Melbourne's transportation, restaurants, attractions, and accommodations.
 
 4. Usage
 4.1. Navigating the App
@@ -38,7 +43,7 @@ Tableau Public Account (for using embedded Tableau visualizations)
     - Highcharter Visualizations: Provides visual representation of trends over time, such as tourist origins by year, allowing users to track changes dynamically.
 
 5. Files and Directories
-MelbourneGuide_final.R: Main file containing the Shiny app code, including UI and server components.
+app.R: Main file containing the Shiny app code, including UI and server components.
 data/: Directory containing CSV and GeoJSON files for use within the app.
 tableau-in-shiny-v1.2.R: Script enabling Shiny-Tableau integration for handling embedded Tableau visualizations.
 www/: Contains static assets such as images used in the app.

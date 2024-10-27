@@ -38,7 +38,7 @@ Tableau Public Account (for using embedded Tableau visualizations)
     - Highcharter Visualizations: Provides visual representation of trends over time, such as tourist origins by year, allowing users to track changes dynamically.
 
 5. Files and Directories
-app.R: Main file containing the Shiny app code, including UI and server components.
+MelbourneGuide_final.R: Main file containing the Shiny app code, including UI and server components.
 data/: Directory containing CSV and GeoJSON files for use within the app.
 tableau-in-shiny-v1.2.R: Script enabling Shiny-Tableau integration for handling embedded Tableau visualizations.
 www/: Contains static assets such as images used in the app.
@@ -49,6 +49,10 @@ https://data.melbourne.vic.gov.au/pages/home/
 https://www.data.vic.gov.au/
 https://www.abs.gov.au/statistics/industry/tourism-and-transport/overseas-arrivals-and-departures-australia/aug-2024#visitor-arrivals-short-term
 https://www.kaggle.com/datasets/kanchana1990/top-500-melbourne-eateries-tripadvisors-best
+https://data.melbourne.vic.gov.au/explore/dataset/landmarks-and-places-of-interest-including-schools-theatres-health-services-spor/information/
+https://business.vic.gov.au/__data/assets/pdf_file/0009/1865160/Melbournes-Top-Attractions-year-ending-December-2019.pdf
+https://www.australia.com
+https://localguidetomelbourne.com/tours
 
 7. License
 This project is licensed under the MIT License.

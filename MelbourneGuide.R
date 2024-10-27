@@ -14,6 +14,7 @@ if(!require(shinyWidgets)) install.packages("shinyWidgets")
 if(!require(leaflet())) install.packages("leaflet")
 
 
+
 source('tableau-in-shiny-v1.2.R')
 
 ##################
@@ -25,6 +26,11 @@ data <- read_csv("data/melbourne_weather.csv", show_col_types = FALSE)
 transposed_data <- data %>%
   pivot_longer(cols = -Month, names_to = "Metric", values_to = "Value") %>%
   pivot_wider(names_from = Month, values_from = Value)
+
+################## Hotel Data load ##################
+
+airbnb_data <- read.csv("data/top-rated_rentals.csv")
+hotel_data <- read.csv("data/hotel.csv")
 
 
 ################## Transportation Data load ##################
@@ -505,12 +511,132 @@ attraction_tab <- tabPanel(
 )
 
 accomodation_tab <- tabPanel(
-  title="Accomodation",
-  h2("Accomodation in Melbourne"),
-  tableauPublicViz(
-    id="AccomodationMap",
-    url="https://public.tableau.com/views/Airbnb_17295563103790/Sheet1?:language=en-GB&publish=yes&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link",
-    height="600px"
+  title = "Accommodation",
+  div(
+    style = "text-align: center; width: 80%; margin: auto;",
+    h2("Welcome to Your Melbourne Stay Guide", style = "text-align: center; margin-bottom: 30px;"),
+  
+    # Brief introduction to the accommodation section
+    p("Explore Melbourne’s best stays! Whether you’re looking for a cozy Airbnb or a luxurious hotel experience, we’ve gathered the top recommendations across the city’s most vibrant neighborhoods. 
+      Use our interactive map and data insights to find your ideal place to stay, discover nearby attractions, and compare amenities to make the most of your visit to Melbourne.",
+      style = "text-align: center; font-size: 1.2em; margin-bottom: 40px;"),
+    
+  ),
+  
+  tags$div(
+    style = "text-align: center; width: 100%; margin-bottom: 50px;",
+    # Airbnb Section
+    h3("Airbnb Stays in Melbourne", style = "text-align: center; margin-bottom: 20px;"),
+  
+    div(
+      style = "display: inline-block; width: 80%; height: 600px; overflow: hidden; margin-bottom: 30px;",
+      h4("Discover Melbourne’s Best Airbnb Stays", style = "margin-bottom: 15px;"),
+      p("Use the map below to filter listings by neighborhood, accommodates, price, room type, and ratings. 
+        These options help you narrow down your preferences, making it easy to find the perfect spot to suit your style and needs.",
+        style = "font-size: 1.2em; margin-bottom: 20px;"),
+      tableauPublicViz(
+        id = "AirbnbMap",
+        url = "https://public.tableau.com/shared/8D8HT7S9C?:display_count=n&:origin=viz_share_link"
+      )
+    ),
+    
+    div(
+      style = "width: 85%; margin: auto;",
+      # Title for Top Airbnb Picks
+      h4("Our Picks: Top 4 Airbnb Stays in Melbourne", style = "text-align: center; margin-bottom: 20px;"),
+      p("Looking for a unique stay experience? These top 4 Airbnb listings offer the highest ratings for cleanliness, location, and amenities, providing comfort and convenience for any traveler. 
+        Perfect for those who value style and ease, each listing includes highlights and exclusive features.",
+        style = "font-size: 1.2em;text-align: center; margin-bottom: 30px;"),
+      
+    ),
+
+    # Create a fluid row for the cards
+    
+    fluidRow(
+      lapply(1:nrow(airbnb_data), function(i) {
+        column(3,  # Each card takes up 3 columns (4 cards in a row)
+              div(class = "card",
+                  style = "margin: 1px; padding: 1px; border-radius: 0px; height: 500px; display: flex; flex-direction: column;",
+                  h4(airbnb_data$title[i]),
+                  img(src = airbnb_data$img_url[i], style = "width: 100%; height: 195px; object-fit: cover; border-radius: 5px;"),
+                  
+                  h5(airbnb_data$name[i]),
+                  p(paste("Score:", airbnb_data$score[i])),
+                  div(style = "flex-grow: 1; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4;", 
+                      airbnb_data$summary[i]),  # Allow summary to grow and fill space
+                  actionButton(paste0("book_now_", i), "Book Now", 
+                                onclick = sprintf("window.open('%s', '_blank')", airbnb_data$book_url[i]), 
+                                style = "margin-top: 20px;")  # Add Book Now button
+                  
+              )
+        )
+      })
+    ),
+    
+    p("Ready to choose? Compare prices, amenities, and perks to find your perfect Melbourne Airbnb.", 
+      style = "font-size: 1.2em;text-align: center; margin-top: 20px;"),
+    p("Data Source: Airbnb", style = "text-align: center; font-size: 0.9em; margin-top: 10px;")
+  ),
+
+  # Hotel Section
+  tags$div(
+    style = "text-align: center; width: 100%; margin-bottom: 50px;",  
+    h3("Hotels in Melbourne", style = "text-align: center; margin-bottom: 20px;"),
+    
+    # Vertical layout for the Tableau visualizations and hotel info
+    div(
+      style = "display: flex; flex-direction: column; align-items: center; gap: 20px; margin-top: 20px;",
+      
+      
+      div(
+        style = "width: 100%; max-width: 1000px; height: 600px; overflow: hidden;",
+        h4("Explore Melbourne’s Hotel Map for Every Traveler’s Needs", style = "margin-bottom: 15px;"),
+        p("Melbourne has a range of hotels to suit all preferences and budgets. From luxurious five-star stays to budget-friendly finds, use our interactive map to explore each hotel by class, location, and rating.",
+        style = "font-size: 1.2em; text-align: center; margin-bottom: 20px;"),
+      
+        tags$div(
+          style = "width: 80%; height: 100%;",
+          tableauPublicViz("tableau_viz", "https://public.tableau.com/views/Airbnb_17295563103790/HotelsinMelbourne?:language=en-US&publish=yes&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link")
+        )
+      ),
+      
+      # Hotel information section
+      div(
+        id = "hotelInfo",
+        style = "width: 100%; max-width: 1000px; height: 400px; overflow-y: auto;",
+        tags$div(
+          style = "height: 100%;",
+          h4("Compare Average Ratings and Amenities Across Melbourne Hotels", style = "margin-bottom: 10px;"),
+          p("Whether you’re traveling solo, with family, or for business, amenities can make all the difference. Use this table to view and compare average scores for location, cleanliness, service, and value among different hotels. 
+            Dive into details of each hotel’s amenities, from pools and gyms to bars, for the best fit for your trip.",
+            style = "font-size: 1.2em; margin-bottom: 20px;"),
+          p("Curious about specific features? Select one or multiple hotels to see their ratings and amenities side by side, ensuring a better decision.",
+            style = "font-size: 1.2em; margin-top: 20px;"),
+          DTOutput("hotelTable"),
+          uiOutput("bookingButton")
+          
+        )
+      ),
+      
+      
+      div(
+        style = "text-align: center; width: 100%; max-width: 1000px; height: 1000px; overflow: hidden;",
+        h4("Find Your Perfect Stay Based on Nearby Attractions and Hotel Class", style = "margin-top: 20px;"),
+        p("Are you a foodie, a sightseer, or both? This chart compares hotel class with the number of nearby restaurants and attractions, helping you find accommodations that meet your interests. 
+        See which hotels offer the best combination of luxury, convenience, and local experiences.",
+        style = "font-size: 1.2em; margin-bottom: 20px;"),
+        p("Would you prefer a hotel with high-end restaurants nearby or one that’s close to major attractions? 
+        Explore the balance of convenience and class to match your needs.",
+        style = "font-size: 1.2em; margin-bottom: 20px;"),
+        tags$div(
+          style = "height: 400px; width: 80%; margin-left: 20%; overflow: auto;",  # Adjust height as needed
+          tableauPublicViz("NearbyAttractions", 
+                          "https://public.tableau.com/views/Airbnb_17295563103790/Sheet8?:language=en-US&publish=yes&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link", 
+                          height = "100%", width = "100%")
+        )
+      ),
+      
+    )
   )
 )
 
@@ -1018,6 +1144,71 @@ server <- function(input, output, session) {
   
   observeEvent(input$touristic_title, {
     updateRadioButtons(session, "touristic_stop_type", selected = "All Touristic Stops")
+  })
+
+  ######################### Accomodation #########################
+  # Observe the mark selection changed event
+  observeEvent(input$tableau_viz_mark_selection_changed, {
+    selected_hotel <- input$tableau_viz_mark_selection_changed
+    # Check if selected_hotel is a list and has data
+    if (is.list(selected_hotel) && length(selected_hotel) > 0 && !is.null(selected_hotel$Name) && length(selected_hotel$Name) > 0) {
+      # Process all selected hotels
+      hotel_names <- selected_hotel$Name  # Get all selected hotel names
+      
+      # Initialize a list to store output data frames
+      output_data_list <- list()
+      
+      for (hotel_name in hotel_names) {
+        # Filter the hotel data for the selected hotel
+        selected_data <- hotel_data[hotel_data$name == hotel_name, ]
+        
+        # Check if selected_data is not empty
+        if (nrow(selected_data) > 0) {
+          # Calculate the average of the specified columns
+          avg_score <- mean(c(selected_data$Location, selected_data$Cleanliness, selected_data$Service, selected_data$Value), na.rm = TRUE)
+          
+          # Prepare data for the output data frame
+          output_data <- data.frame(
+            `Hotel Name` = hotel_name,  # Add hotel name column
+            `Overall Score` = avg_score,
+            Pool = ifelse(selected_data$Pool == 1, "Yes", "No"),
+            `Bar / Lounge` = ifelse(selected_data$`Bar...lounge` == 1, "Yes", "No"),  # Adjusted to match the CSV header
+            Gym = ifelse(selected_data$Gym == 1, "Yes", "No"),
+            Link = sprintf('<a href="%s" target="_blank">Book Now</a>', selected_data$website)  # Create a clickable link
+          )
+          
+          # Rename columns to have spaces instead of dots
+          colnames(output_data) <- c("Hotel Name", "Overall Score", "Pool", "Bar / Lounge", "Gym", "Link")
+          
+          # Append the output data frame to the list
+          output_data_list[[hotel_name]] <- output_data
+        }
+      }
+      
+      # Combine all output data frames into one
+      if (length(output_data_list) > 0) {
+        combined_output_data <- do.call(rbind, output_data_list)
+        
+        # Render the table
+        output$hotelTable <- renderDT({
+          datatable(combined_output_data, 
+                    options = list(dom = 't', paging = FALSE), 
+                    rownames = FALSE, 
+                    escape = FALSE) %>%
+            formatStyle(
+              columns = colnames(combined_output_data),  # Apply to all columns
+              `text-align` = 'center'  # Center the text
+            )
+        })
+      } else {
+        # Handle case where no data is found for the selected hotels
+        output$hotelTable <- renderDT(NULL)  # Clear the table
+      }
+    } else {
+      # Handle case where no hotel is selected or selected_hotel is an empty list
+      output$hotelTable <- renderDT(NULL)  # Clear the table
+      print("No hotel selected or selected_hotel is an empty list.")  # Debugging output
+    }
   })
 }
 

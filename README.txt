@@ -62,6 +62,7 @@ https://www.australia.com
 https://localguidetomelbourne.com/tours
 https://rail.nridigital.com/future_rail_sep23/10_largest_tram_networks
 https://www.ptv.vic.gov.au/footer/data-and-reporting/datasets/
+https://www.kaggle.com/datasets/tylerx/melbourne-airbnb-open-data
 
 7. License
 This project is licensed under the MIT License.

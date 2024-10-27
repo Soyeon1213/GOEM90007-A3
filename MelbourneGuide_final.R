@@ -695,7 +695,23 @@ attraction_tab <- nav_panel(
       height = "600px"
     )
   ),
+  
+  h3("Top 10 Most Popular Attractions in Melbourne",
+     style = "text-align: center; margin-top: 30px; margin-bottom: 20px;"),
+  
+  div(
+    style = "padding-bottom: 50px;",  # Add bottom padding for better spacing
+    tableauPublicViz(
+      id = "TopAttractionChart",
+      url = "https://public.tableau.com/shared/CR99P4C96?:display_count=n&:origin=viz_share_link",
+      width = "100%", 
+      height = "700px"
+    )
+  ),
   br(),br(),
+  
+  h3("So what is Melbourne famous for?", 
+     style = "text-align: center; margin-top: 30px; margin-bottom: 20px;"),
   
   fluidRow(
     # 여러 개의 국가 선택이 가능한 드롭다운 메뉴
@@ -709,6 +725,18 @@ attraction_tab <- nav_panel(
            )
     )
     
+  ),
+  
+  # Add this below the existing plot output in your UI layout
+  fluidRow(
+    column(12, 
+           h4("Melbourne's Cultural and Outdoor Attractions", style = "text-align: center; margin-top: 30px;"),
+           p("Melbourne is well-known for its rich cultural and historical heritage, boasting a significant number of art galleries, museums, and churches. 
+             These cultural buildings offer a deep insight into the city's history, art, and architecture. Additionally, Melbourne provides a variety of 
+             recreational opportunities through its informal outdoor spaces such as parks, gardens, and major sports facilities. These public areas contribute 
+             to the vibrant and active lifestyle of the city's residents and visitors.", 
+             style = "text-align: center; font-size: 1.3em; margin-bottom: 30px;")
+    )
   ),
   
   tags$div(

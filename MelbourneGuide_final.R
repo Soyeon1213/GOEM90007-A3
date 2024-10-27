@@ -54,7 +54,7 @@ tourist_data_long <- tourist_data %>%
 get_data_for_year <- function(year) {
   tourist_data_long <- tourist_data %>%
     filter(Year == year) %>%  # Year filter
-    pivot_longer(cols = -Year, names_to = "Country", values_to = "Value") %>%  # 열 변환
+    pivot_longer(cols = -Year, names_to = "Country", values_to = "Value") %>%  
     arrange(desc(Value)) %>%
     head(10)  # Top 10 nations
   return(tourist_data_long)
@@ -365,10 +365,10 @@ home_tab <- nav_panel(
 transportation_tab <- nav_panel(
   title="Transportation",
   
-  # 제목과 스타일링 추가
+  # Transportation in Melbourne Title
   h2("Transportation in Melbourne", style = "text-align: center; font-size: 2.5em; font-weight: bold; margin-bottom: 20px;"),
   
-  # 소개 문구 추가
+  # Explanation
   p(
     "Explore Melbourne's Transport System. Convenient, Efficient, Accessible!",
     style = "text-align: center; font-size: 1.5em; font-weight: bold; color: #555; margin-bottom: 15px;"
@@ -381,16 +381,16 @@ transportation_tab <- nav_panel(
   
   fluidPage(
     
-    # 추가하려는 Tram System Length 차트
+    # Tram System Length chart
     h3("Tram System Length by City", style = "text-align: center;"),
     
-    # 여러 개의 국가 선택이 가능한 드롭다운 메뉴
+    # Filtering for countries
     selectizeInput("country_filter", "Select Country", 
                    choices = c("All", unique(tram_length_data$country)),
                    selected = "All", multiple = TRUE,
-                   options = list(plugins = list("remove_button"))),  # 선택 항목 제거 버튼 추가
+                   options = list(plugins = list("remove_button"))),
     
-    highchartOutput("tram_length_bar_chart", height = "600px"),  # 차트 추가
+    highchartOutput("tram_length_bar_chart", height = "600px"), 
     hr(),
     
     p(
@@ -624,7 +624,7 @@ restaurant_tab <- nav_panel(
     fluidRow(
       # Restaurant 1
       column(4, align = "center",
-             div(style = "box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2); border-radius: 10px; padding: 20px; margin-bottom: 20px; min-height: 300px;",  # 고정된 최소 높이 추가
+             div(style = "box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2); border-radius: 10px; padding: 20px; margin-bottom: 20px; min-height: 300px;",  
                  img(src = "ginger_olive.jpg", height = "150px", style = "border-radius: 10px; margin-bottom: 15px;"),
                  h4("Ginger Olive Restaurant and Grill", style = "font-size: 1.5em; font-weight: bold; color: #333;"),
                  p("U 2 38 Manchester Lane, Melbourne", style = "color: #777; font-size: 1.2em;"),
@@ -633,7 +633,7 @@ restaurant_tab <- nav_panel(
       ),
       # Restaurant 2
       column(4, align = "center",
-             div(style = "box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2); border-radius: 10px; padding: 20px; margin-bottom: 20px; min-height: 300px;",  # 고정된 최소 높이 추가
+             div(style = "box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2); border-radius: 10px; padding: 20px; margin-bottom: 20px; min-height: 300px;", 
                  img(src = "hardware_club.jpg", height = "150px", style = "border-radius: 10px; margin-bottom: 15px;"),
                  h4("The Hardware Club", style = "font-size: 1.5em; font-weight: bold; color: #333;"),
                  p("43 Hardware Lane, Melbourne", style = "color: #777; font-size: 1.2em;"),
@@ -642,7 +642,7 @@ restaurant_tab <- nav_panel(
       ),
       # Restaurant 3
       column(4, align = "center",
-             div(style = "box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2); border-radius: 10px; padding: 20px; margin-bottom: 20px; min-height: 300px;",  # 고정된 최소 높이 추가
+             div(style = "box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2); border-radius: 10px; padding: 20px; margin-bottom: 20px; min-height: 300px;", 
                  img(src = "ten_square.jpg", height = "150px", style = "border-radius: 10px; margin-bottom: 15px;"),
                  h4("Ten Square Café", style = "font-size: 1.5em; font-weight: bold; color: #333;"),
                  p("120 Hardware St, Melbourne", style = "color: #777; font-size: 1.2em;"),
@@ -656,7 +656,7 @@ restaurant_tab <- nav_panel(
     fluidRow(
       # Restaurant 4
       column(6, align = "center",
-             div(style = "box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2); border-radius: 10px; padding: 20px; margin-bottom: 20px; min-height: 300px;",  # 고정된 최소 높이 추가
+             div(style = "box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2); border-radius: 10px; padding: 20px; margin-bottom: 20px; min-height: 300px;", 
                  img(src = "caterinas.jpg", height = "150px", style = "border-radius: 10px; margin-bottom: 15px;"),
                  h4("Caterina's Cucina E Bar", style = "font-size: 1.5em; font-weight: bold; color: #333;"),
                  p("221 Queen St, Melbourne", style = "color: #777; font-size: 1.2em;"),
@@ -665,7 +665,7 @@ restaurant_tab <- nav_panel(
       ),
       # Restaurant 5
       column(6, align = "center",
-             div(style = "box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2); border-radius: 10px; padding: 20px; margin-bottom: 20px; min-height: 300px;",  # 고정된 최소 높이 추가
+             div(style = "box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2); border-radius: 10px; padding: 20px; margin-bottom: 20px; min-height: 300px;",  
                  img(src = "tokui_sushi.jpg", height = "150px", style = "border-radius: 10px; margin-bottom: 15px;"),
                  h4("Tokui Sushi", style = "font-size: 1.5em; font-weight: bold; color: #333;"),
                  p("260 Lonsdale St, Melbourne", style = "color: #777; font-size: 1.2em;"),
@@ -714,14 +714,14 @@ attraction_tab <- nav_panel(
      style = "text-align: center; margin-top: 30px; margin-bottom: 20px;"),
   
   fluidRow(
-    # 여러 개의 국가 선택이 가능한 드롭다운 메뉴
+    # filter for packed bubble chart
     selectizeInput("theme_filter", "Select Theme", 
                    choices = c("All", unique(attraction_data$theme)),
                    selected = "All", multiple = TRUE,
-                   options = list(plugins = list("remove_button"))),  # 선택 항목 제거 버튼 추가
+                   options = list(plugins = list("remove_button"))), 
     column(8, offset = 1,
            div(class = "chart-container",
-               highchartOutput("theme_packedbubble",width = "900px", height = "600px")  # 차트
+               highchartOutput("theme_packedbubble",width = "900px", height = "600px")
            )
     )
     
@@ -1111,7 +1111,7 @@ server <- function(input, output, session) {
       playing(FALSE)  # Stop when it reaches the last year
     }
   }
-  # 고정된 색상을 지정할 주요 국가 목록과 색상 팔레트
+  # countries colour palette
   fixed_countries <- c("Japan", "New Zealand", "United States of America",
                        "UK, CIs & IOM", "Singapore", "Germany", "Hong Kong",
                        "Canada", "Malaysia", "India", "Korea, South")
@@ -1133,29 +1133,26 @@ server <- function(input, output, session) {
     "Taiwan" = "#ffccd5"
   )
   
-  # 국가별 색상을 고정하기 위한 국가 목록
+  # country list
   countries <- unique(tourist_data %>% select(-Year) %>% names())
   
-  # 고정된 국가 외의 국가들에 대해 색상을 생성하는 함수 (리스트로 변환)
+  # other countries colour 
   custom_colors <- reactive({
-    # 고정된 국가들에 대한 색상 매핑
     dynamic_countries <- setdiff(countries, names(fixed_colors))  # 고정되지 않은 국가들
     dynamic_palette <- colorRampPalette(c("#4CAF50", "#FFC107", "#F44336", "#2196F3"))(length(dynamic_countries))
     
-    # 고정된 국가와 동적으로 생성된 국가 색상을 결합
     color_palette_list <- c(fixed_colors, setNames(dynamic_palette, dynamic_countries))
     return(color_palette_list)
   })
   
-  # 데이터 준비
   data_prepared <- reactive({
     get_data_for_year(input$year_slider)
   })
   
-  # 전체 방문자 수 계산
+  # total visitors calculation
   total_visitors <- reactive({
     total_data <- tourist_data %>% filter(Year == input$year_slider)
-    total_sum <- total_data %>% select(-Year) %>% rowSums(na.rm = TRUE)  # Year를 제외하고 모든 열의 합계
+    total_sum <- total_data %>% select(-Year) %>% rowSums(na.rm = TRUE)  
     return(total_sum)
   })
   
@@ -1163,58 +1160,52 @@ server <- function(input, output, session) {
     max(tourist_data %>% select(-Year) %>% unlist(use.names = FALSE), na.rm = TRUE)
   })
   
-  # Highchart 객체 생성 (반응형 처리)
+  # rendering bar race chart
   output$bar_race_chart <- renderHighchart({
     hc <- highchart() %>%
       hc_chart(type = "bar") %>%
       
-      # 차트 제목과 서브 타이틀
-      # hc_title(text = "Top Tourist Origins Over Time", align = "left",
-      #         style = list(fontSize = "24px", color = "#333333")) %>%
-      #hc_subtitle(text = "Source: Australian Bureau of Statistics", align = "left",
-      #            style = list(fontSize = "14px", color = "#666666")) %>%
-      
-      # X축 설정 (Country 카테고리)
+      # X axis
       hc_xAxis(categories = data_prepared()$Country,
                title = list(text = NULL),
                gridLineWidth = 0, lineWidth = 0,
                labels = list(style = list(fontSize = "14px", color = "#444444"))) %>%
       
-      # Y축 설정 (Value)
+      # Y axis
       hc_yAxis(min = 0, max = max_visitors(),
                title = list(text = "Number of Tourists", align = 'high',
                             style = list(fontSize = "16px", color = "#444444")),
                labels = list(style = list(fontSize = "14px", color = "#444444")),
                gridLineWidth = 1) %>%
       
-      # 툴팁 설정 (단위를 천 단위 쉼표로 표시)
+      # tooltip
       hc_tooltip(pointFormat = 'Country: <b>{point.name}</b><br>Tourists: <b>{point.y:,.0f}</b>',
                  style = list(fontSize = "14px")) %>%
       
-      # 바 차트 옵션 설정 (숫자를 차트 옆에 표시, 천단위 쉼표 추가)
+      # barchart options
       hc_plotOptions(bar = list(
         dataLabels = list(
           enabled = TRUE,
-          format = '{point.y:,.0f}',  # 천 단위 쉼표를 표시
+          format = '{point.y:,.0f}',  
           style = list(fontSize = "12px", color = "#FFFFFF", textOutline = "none"),
-          align = "right",  # 바 오른쪽에 숫자 배치
-          inside = FALSE),  # 바 내부에 배치
+          align = "right",
+          inside = FALSE),
         grouping = FALSE,
-        borderRadius = 8,  # 바 모서리 둥글게
-        pointPadding = 0.1,  # 바 간격
-        groupPadding = 0.05,  # 그룹 간격
-        colorByPoint = TRUE,  # 각 바의 색상을 다르게 적용
+        borderRadius = 8, 
+        pointPadding = 0.1,
+        groupPadding = 0.05,  
+        colorByPoint = TRUE,
         animation = list(
-          duration = 1  # 애니메이션 시간을 2초로 설정
+          duration = 1  # animation time
         )
       )) %>%
       
-      # 시리즈 데이터 추가 (각 국가별 색상 지정)
+      # series data(countries colours)
       hc_add_series(name = paste("Year", input$year_slider),
                     data = purrr::map2(data_prepared()$Country, data_prepared()$Value,
-                                       ~list(name = .x, y = .y, color = custom_colors()[[.x]])))  # custom_colors() 호출
+                                       ~list(name = .x, y = .y, color = custom_colors()[[.x]])))
     
-    # 레전드 추가
+    # legend
     hc <- hc %>%
       hc_legend(enabled = TRUE,
                 layout = "horizontal",
@@ -1222,14 +1213,14 @@ server <- function(input, output, session) {
                 verticalAlign = "top",
                 title = list(
                   text = paste("Total :",
-                               formatC(total_visitors(), format = "f", big.mark = ",", digits = 0)  # 모든 국가의 방문자 수 합산
+                               formatC(total_visitors(), format = "f", big.mark = ",", digits = 0)
                   )),
                 itemStyle = list(fontSize = "14px", fontWeight = "bold", color = "#000000"))
     
-    # 크레딧 비활성화
+   
     hc <- hc %>%
       hc_credits(enabled = FALSE) %>%
-      hc_size(height = 600)  # 차트 크기 설정
+      hc_size(height = 600) 
     
     return(hc)
   })
@@ -1246,15 +1237,14 @@ server <- function(input, output, session) {
     }
   }
   
-  # 차트를 자연스럽게 업데이트하기 위해 highchartProxy 사용
   observeEvent(input$year_slider, {
     data_prepared <- get_data_for_year(input$year_slider)
     
-    # 차트 시리즈만 업데이트 (리렌더링 방지)
+    # highchartProxy for smooth rendering
     highchartProxy("bar_race_chart") %>%
       hcpxy_update_series(
-        id = 0,  # 시리즈가 하나일 경우 id = 0 사용
-        data = data_prepared$Value,  # 데이터만 업데이트
+        id = 0, 
+        data = data_prepared$Value, 
         name = paste("Year", input$year_slider)
       ) %>%
       hcpxy_update(
@@ -1264,44 +1254,44 @@ server <- function(input, output, session) {
       )
   })
   
-  # 애니메이션이 완료된 후에만 자동으로 차트 갱신
+  # update chart after animation complete
   observeEvent(input$animationComplete, {
     if (playing()) {
-      nextStep()  # 애니메이션이 끝난 후에만 다음 연도로 이동
+      nextStep()  
     }
   })
   
-  # 버튼의 아이콘을 Play/Pause로 전환
+  # Play Pause icon
   observeEvent(input$play_pause_button, {
     if (playing()) {
       updateActionButton(session, "play_pause_button",
-                         label = HTML(as.character(icon("play"))))  # Play 버튼으로 전환
-      playing(FALSE)  # playing 상태를 FALSE로 전환
+                         label = HTML(as.character(icon("play"))))  
+      playing(FALSE)
     } else {
       updateActionButton(session, "play_pause_button",
-                         label = HTML(as.character(icon("pause"))))  # Pause 버튼으로 전환
-      playing(TRUE)  # playing 상태를 TRUE로 전환
-      nextStep()  # 바로 다음 연도로 이동
+                         label = HTML(as.character(icon("pause"))))
+      playing(TRUE)  
+      nextStep()  
     }
   })
   
-  # 자동 업데이트를 위한 observe 함수
+  # observe for updating
   observe({
     if (playing()) {
-      invalidateLater(0.7, session)  # 1.5초마다 다음 연도로 이동
-      nextStep()  # playing 상태가 TRUE일 때만 실행
+      invalidateLater(0.7, session)  # update timer
+      nextStep()  
     }
   })
   
   
   ##################################### Transportation map #####################################
   output$station_map <- renderLeaflet({
-    # 선택한 정류장 타입에 따른 필터링
+    #filtering for transportation type
     filtered_data <- switch(input$stop_type,
                             "Tram Stops" = {
                               tram_filtered <- tram_data %>%
                                 select(stop_id, latitude, longitude, stop_name, ticketzone, routeussp) %>%
-                                mutate(color = "royalblue")  # 트램은 royalblue로 설정
+                                mutate(color = "royalblue") 
                               if (!is.null(input$tram_number) && length(input$tram_number) > 0) {
                                 tram_filtered <- tram_filtered %>%
                                   filter(routeussp %in% input$tram_number)
@@ -1311,7 +1301,7 @@ server <- function(input, output, session) {
                             "Train Stations" = {
                               train_filtered <- train_data %>%
                                 select(stop_id, latitude, longitude, stop_name, ticketzone, routeussp) %>%
-                                mutate(color = "green")  # 기차는 green으로 설정
+                                mutate(color = "green")  
                               if (!is.null(input$train_lines) && length(input$train_lines) > 0) {
                                 train_filtered <- train_filtered %>%
                                   filter(routeussp %in% input$train_lines)
@@ -1321,10 +1311,10 @@ server <- function(input, output, session) {
                             "All Stops" = {
                               tram_filtered <- tram_data %>%
                                 select(stop_id, latitude, longitude, stop_name, ticketzone, routeussp) %>%
-                                mutate(color = "royalblue")  # 트램은 royalblue로 설정
+                                mutate(color = "royalblue") 
                               train_filtered <- train_data %>%
                                 select(stop_id, latitude, longitude, stop_name, ticketzone, routeussp) %>%
-                                mutate(color = "green")  # 기차는 green으로 설정
+                                mutate(color = "green")  
                               
                               combined_data <- rbind(tram_filtered, train_filtered)
                               combined_data
@@ -1420,17 +1410,17 @@ server <- function(input, output, session) {
     length = c(250, 205.5, 193, 182, 181.8, 178, 176.9, 174, 149.9, 145)
   )
   
-  # Highchart 출력
+  # render bar chart
   output$tram_length_bar_chart <- renderHighchart({
     
-    # 선택된 국가 필터링 (All 선택 시 모든 국가 포함)
+    # filtering countries
     data_prepared <- if ("All" %in% input$country_filter || is.null(input$country_filter)) {
       tram_length_data
     } else {
       tram_length_data %>% filter(country %in% input$country_filter)
     }
     
-    # 각 나라별 색상을 지정
+    # countries colour palette
     country_colors <- c(
       "Australia" = "#CFBAF0",
       "Russia" = "#90DBF4",
@@ -1442,50 +1432,46 @@ server <- function(input, output, session) {
       "US" = "#FBF8CC"
     )
     
-    # 데이터 리스트 변환
     data_list <- purrr::pmap(list(data_prepared$city, data_prepared$length, data_prepared$country), function(city, length, country) {
       list(name = city, y = length, country = country, color = country_colors[[country]])
     })
     
-    # highchart 객체 생성
+    # bar chart
     highchart() %>%
       hc_chart(type = "bar") %>%
       hc_title(text = "Tram System Length by City", align = "left") %>%
       hc_subtitle(text = 'Source: https://rail.nridigital.com/future_rail_sep23/10_largest_tram_networks', align = 'left') %>%
       
-      # X축 설정 (city를 카테고리로 사용)
+      # X axis
       hc_xAxis(categories = data_prepared$city,
                title = list(text = NULL),
-               gridLineWidth = 1,  # 그리드 라인 설정
-               lineWidth = 0) %>%  # X축 라인 설정
+               gridLineWidth = 1,  
+               lineWidth = 0) %>% 
       
-      # Y축 설정 (length를 y축 값으로 사용)
+      # Y axis
       hc_yAxis(min = 0,
                title = list(text = 'Length (km)', align = 'high'),
                labels = list(overflow = 'justify'),
                gridLineWidth = 0) %>%
       
-      # 툴팁 설정
+      # tooltip
       hc_tooltip(pointFormat = 'Country: <b>{point.country}</b>') %>%
       
       
-      # 바 차트 옵션 설정
+      # options
       hc_plotOptions(bar = list(
         borderRadius = '3%',
         dataLabels = list(
           enabled = TRUE
         ),
-        groupPadding = 0.1  # 바 간격 설정
+        groupPadding = 0.1  
       )) %>%
       
-      
-      # 크레딧 비활성화
       hc_credits(enabled = FALSE) %>%
       
-      # 시리즈 데이터 설정 (도시별 길이 데이터)
       hc_add_series(name = "Tram System Length",
                     data = data_list,
-                    colorByPoint = TRUE)  # 각 바의 색상 변경
+                    colorByPoint = TRUE)
   })
   
   
@@ -1522,7 +1508,7 @@ server <- function(input, output, session) {
       restaurant_table <- data.frame(
         Info = c("Name:", "Address:", "Rating:", "Price Level:"),
         Value = c(selected_info$`Trading name`, selected_info$`Business address`, selected_info$rating, selected_info$priceLevel),
-        Category = selected_info$`Industry Category`  # 카테고리 추가
+        Category = selected_info$`Industry Category`  
       )
     } else {
       restaurant_table <- data.frame(Info = c("Name:", "Address:", "Rating:", "Price Level:"),
@@ -1579,14 +1565,13 @@ server <- function(input, output, session) {
   # Reactive data filtered by selected theme and top 2 sub-themes
   filtered_data <- reactive({
     data <- top_bubble_data
-    # input$theme_filter가 NULL이 아니고 "All"이 포함되어 있지 않은 경우에만 필터 적용
     if (!is.null(input$theme_filter) && !("All" %in% input$theme_filter)) {
       data <- data %>% filter(theme %in% input$theme_filter)
     }
     data
   })
   
-  # Packed Bubble 차트 렌더링
+  # Packed Bubble chart rendering
   
   output$theme_packedbubble <- renderHighchart({
     hchart(
@@ -1622,7 +1607,6 @@ server <- function(input, output, session) {
           dataLabels = list(
             enabled = TRUE,
             format = "{point.name}",
-            # 상위 2개 sub_theme에만 라벨 표시
             filter = list(
               property = "label_rank",
               operator = "<=",

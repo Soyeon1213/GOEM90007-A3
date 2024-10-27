@@ -589,7 +589,7 @@ restaurant_tab <- nav_panel(
   br(),
 
   p(
-    "Ready to embark on a food journey?<br>Explore the map below to discover the best places to eat in Melbourne!",
+    "Ready to embark on a food journey? Explore the map below to discover the best places to eat in Melbourne!",
     style = "text-align: center; font-size: 1.4em; font-weight: bold;"
   ),
   

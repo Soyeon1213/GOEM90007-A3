@@ -353,7 +353,7 @@ home_tab <- nav_panel(
            actionButton("btn3", "Attractions", class = "btn-primary", style = "width: 100%;")
     ),
     column(3,
-           actionButton("btn4", "Accommodation", class = "btn-primary", style = "width: 100%;")
+           actionButton("btn4", "Accommodations", class = "btn-primary", style = "width: 100%;")
     )
   ),
   
@@ -779,14 +779,14 @@ attraction_tab <- nav_panel(
 
 ###### Accommodation tab UI ######  
 Accommodation_tab <- tabPanel(
-  title = "Accommodation",
+  title = "Accommodations",
   div(
     style = "text-align: center; width: 80%; margin: auto;",
-    h2("Welcome to Your Melbourne Stay Guide", style = "text-align: center; margin-bottom: 30px;"),
+    h2("Explore Melbourne’s Best Stays", style = "text-align: center; margin-bottom: 30px;font-weight: bold"),
     
     # Brief introduction to the accommodation section
-    p("Explore Melbourne’s best stays! Whether you’re looking for a cozy Airbnb or a luxurious hotel experience, we’ve gathered the top recommendations across the city’s most vibrant neighborhoods. 
-      Use our interactive map and data insights to find your ideal place to stay, discover nearby attractions, and compare amenities to make the most of your visit to Melbourne.",
+    p("Whether you’re looking for a cozy Airbnb or a luxurious hotel experience, we’ve gathered the top recommendations across the city’s most vibrant neighborhoods. 
+      Use our interactive maps to find your ideal place to stay, discover nearby attractions, and compare amenities to make the most of your visit to Melbourne.",
       style = "text-align: center; font-size: 1.2em; margin-bottom: 40px;"),
     
   ),
@@ -794,13 +794,13 @@ Accommodation_tab <- tabPanel(
   tags$div(
     style = "text-align: center; width: 100%; margin-bottom: 50px;",
     # Airbnb Section
-    h3("Airbnb Stays in Melbourne", style = "text-align: center; margin-bottom: 20px;"),
+    h3("Airbnb in Melbourne", style = "text-align: center; margin-bottom: 20px; font-weight: bold"),
     
     div(
-      style = "display: inline-block; width: 80%; height: 600px; overflow: hidden; margin-bottom: 30px;",
+      style = "display: inline-block; width: 80%; height: 600px; overflow: hidden; margin-bottom: 50px;",
       h4("Discover Melbourne’s Best Airbnb Stays", style = "margin-bottom: 15px;"),
       p("Use the map below to filter listings by neighborhood, accommodates, price, room type, and ratings. 
-        These options help you narrow down your preferences, making it easy to find the perfect spot to suit your style and needs.",
+        These options help you narrow down your preferences, making it easy to find the perfect spot to suit your needs.",
         style = "font-size: 1.2em; margin-bottom: 20px;"),
       tableauPublicViz(
         id = "AirbnbMap",
@@ -813,7 +813,7 @@ Accommodation_tab <- tabPanel(
       # Title for Top Airbnb Picks
       h4("Our Picks: Top 4 Airbnb Stays in Melbourne", style = "text-align: center; margin-bottom: 20px;"),
       p("Looking for a unique stay experience? These top 4 Airbnb listings offer the highest ratings for cleanliness, location, and amenities, providing comfort and convenience for any traveler. 
-        Perfect for those who value style and ease, each listing includes highlights and exclusive features.",
+        Perfect for those who value style and ease.",
         style = "font-size: 1.2em;text-align: center; margin-bottom: 30px;"),
       
     ),
@@ -849,7 +849,7 @@ Accommodation_tab <- tabPanel(
   # Hotel Section
   tags$div(
     style = "text-align: center; width: 100%; margin-bottom: 50px;",  
-    h3("Hotels in Melbourne", style = "text-align: center; margin-bottom: 20px;"),
+    h3("Hotels in Melbourne", style = "text-align: center; margin-bottom: 20px; font-weight: bold"),
     
     # Vertical layout for the Tableau visualizations and hotel info
     div(
@@ -871,12 +871,12 @@ Accommodation_tab <- tabPanel(
       # Hotel information section
       div(
         id = "hotelInfo",
-        style = "width: 100%; max-width: 1000px; height: 400px; overflow-y: auto;",
+        style = "width: 100%; max-width: 1000px; height: 500px; overflow-y: auto;",
         tags$div(
-          style = "height: 100%;",
-          h4("Compare Average Ratings and Amenities Across Melbourne Hotels", style = "margin-bottom: 10px;"),
+          style = "height: 90%;",
+          h4("Compare Average Ratings and Amenities Across Melbourne Hotels", style = "margin-top: 20px;"),
           p("Whether you’re traveling solo, with family, or for business, amenities can make all the difference. Use this table to view and compare average scores for location, cleanliness, service, and value among different hotels. 
-            Dive into details of each hotel’s amenities, from pools and gyms to bars, for the best fit for your trip.",
+            From pools and gyms to bars, discover dozens of great extras that fit your needs.",
             style = "font-size: 1.2em; margin-bottom: 20px;"),
           p("Curious about specific features? Select one or multiple hotels to see their ratings and amenities side by side, ensuring a better decision.",
             style = "font-size: 1.2em; margin-top: 20px;"),
@@ -888,8 +888,8 @@ Accommodation_tab <- tabPanel(
       
       
       div(
-        style = "text-align: center; width: 100%; max-width: 1000px; height: 1000px; overflow: hidden;",
-        h4("Find Your Perfect Stay Based on Nearby Attractions and Hotel Class", style = "margin-top: 20px;"),
+        style = "text-align: center; width: 100%; max-width: 1000px; height: 1000px; overflow: auto;",
+        h4("Find Your Perfect Stay Based on Nearby Attractions and Hotel Class", style = "margin-top: 30px;"),
         p("Are you a foodie, a sightseer, or both? This chart compares hotel class with the number of nearby restaurants and attractions, helping you find accommodations that meet your interests. 
         See which hotels offer the best combination of luxury, convenience, and local experiences.",
           style = "font-size: 1.2em; margin-bottom: 20px;"),
@@ -897,10 +897,10 @@ Accommodation_tab <- tabPanel(
         Explore the balance of convenience and class to match your needs.",
           style = "font-size: 1.2em; margin-bottom: 20px;"),
         tags$div(
-          style = "height: 400px; width: 80%; margin-left: 20%; overflow: auto;",  # Adjust height as needed
+          style = "width: 80%; margin-left: 20%; overflow: auto;",  # Adjust height as needed
           tableauPublicViz("NearbyAttractions", 
                            "https://public.tableau.com/views/Airbnb_17295563103790/Sheet8?:language=en-US&publish=yes&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link", 
-                           height = "100%", width = "100%")
+                           height = "80%", width = "80%")
         )
       ),
       
@@ -1650,7 +1650,7 @@ server <- function(input, output, session) {
   })
   
   
-  ######################### Accomodation #########################
+  ######################### Accommodation #########################
   observeEvent(input$tableau_viz_mark_selection_changed, {
     selected_hotel <- input$tableau_viz_mark_selection_changed
     # Check if selected_hotel is a list and has data
